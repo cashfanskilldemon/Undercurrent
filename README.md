@@ -127,3 +127,5 @@ server.mjs               零依赖静态服务器 + SPA fallback
 3. **想恢复正常工程结构**：以 `readable/` 为参考重新搭一个 Vite + React + Tailwind + React Router 项目，把数据直接接 `data/mock-data.json`。这比在压缩产物上改要省事得多。
 4. **注意**：站点字体走 Google Fonts CDN，离线环境下字体会回退；封面图是本地 PNG，不依赖 Netlify 的图片转换接口。
 5. **排错**：如果页面显示 `This page couldn't load`，基本都是某个懒加载 chunk 404 了（本目录最初只抓了首页预加载的 8 个 chunk，补上 5 个路由 chunk 后已修复）。检查 DevTools Network 里的 `/assets/*.js` 是否为 404 即可。
+
+- **按钮圆角**：原站全局 `--radius` 只有 `0.2rem`（3.2px），按钮和输入框看起来接近直角。现在提到 `0.625rem`（10px），并显式覆盖 `.rounded-sm`(6px) / `.rounded-md`(8px) / `.rounded-lg`(10px) / `.rounded-xl`(14px)，不依赖 CSS 变量计算。没有圆角类的 `button` / `select` / `textarea` / `input` 由兜底规则补 8px；`rounded-full` 的头像和播放键不受影响（保持圆形）。校验脚本 `node scripts/check-radius.mjs`。
