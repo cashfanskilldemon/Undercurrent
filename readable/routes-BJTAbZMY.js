@@ -1,0 +1,536 @@
+import {
+  A as e,
+  C as t,
+  F as n,
+  I as r,
+  L as i,
+  P as a,
+  R as o,
+  S as s,
+  U as c,
+  a as l,
+  c as u,
+  h as d,
+  i as f,
+  k as p,
+  o as m,
+  r as h,
+  t as g,
+  u as _,
+  y as v,
+} from "./bits-CX_ZQ6ey.js";
+import { t as y } from "./headphones-By0Gb-Us.js";
+import { t as b } from "./messages-square-C5s0jiyu.js";
+import { m as x } from "./index-D8H8Au6A.js";
+import { i as S } from "./thread-card-BiVhtaO2.js";
+var C = {
+  name: `arrow-up-right`,
+  size: 24,
+  node: [
+    [`path`, { d: `M7 7h10v10`, key: `1tivn9` }],
+    [`path`, { d: `M7 17 17 7`, key: `1vkiza` }],
+  ],
+};
+C.node;
+var w = p(C),
+  T = {
+    name: `smartphone`,
+    size: 24,
+    node: [
+      [
+        `rect`,
+        {
+          width: `14`,
+          height: `20`,
+          x: `5`,
+          y: `2`,
+          rx: `2`,
+          ry: `2`,
+          key: `1yt0o3`,
+        },
+      ],
+      [`path`, { d: `M12 18h.01`, key: `mhygvu` }],
+    ],
+  };
+T.node;
+var E = p(T),
+  D = c();
+function O() {
+  return (0, D.jsxs)(D.Fragment, {
+    children: [
+      (0, D.jsx)(k, {}),
+      (0, D.jsx)(A, {}),
+      (0, D.jsx)(j, {}),
+      (0, D.jsx)(M, {}),
+      (0, D.jsx)(N, {}),
+      (0, D.jsx)(P, {}),
+    ],
+  });
+}
+function k() {
+  let t = [...v((e) => e.tracks)].sort((e, t) => t.plays - e.plays)[0],
+    r = d(t.artistId);
+  return (0, D.jsx)(`section`, {
+    className: `relative overflow-hidden border-b border-border`,
+    children: (0, D.jsxs)(`div`, {
+      className: `mx-auto grid max-w-content gap-10 px-4 pt-12 pb-16 sm:px-6 lg:grid-cols-12 lg:pt-20 lg:pb-24`,
+      children: [
+        (0, D.jsxs)(`div`, {
+          className: `relative z-10 lg:col-span-7`,
+          children: [
+            (0, D.jsx)(`p`, {
+              className: `rise font-mono text-xs uppercase tracking-[0.3em] text-primary`,
+              children: `Vol.01 — Underground Hip-Hop × Electronic`,
+            }),
+            (0, D.jsxs)(`h1`, {
+              className: `rise mt-6 font-cn text-[clamp(3.2rem,9vw,7.5rem)] leading-[1]`,
+              style: { animationDelay: `80ms` },
+              children: [
+                `从地下室`,
+                (0, D.jsx)(`br`, {}),
+                (0, D.jsx)(`span`, {
+                  className: `relative inline-block -rotate-2 bg-primary px-3 text-primary-foreground`,
+                  children: `直接推进`,
+                }),
+                (0, D.jsx)(`br`, {}),
+                `你耳朵里`,
+              ],
+            }),
+            (0, D.jsx)(`p`, {
+              className: `rise mt-8 max-w-lg text-lg leading-relaxed text-muted-foreground`,
+              style: { animationDelay: `160ms` },
+              children: `Undercurrent 是给地下嘻哈和电子音乐人的社区。像刷动态一样讨论，把新作品直接发给真正在听的人，再把趁手的插件和采样一起找齐。`,
+            }),
+            (0, D.jsxs)(`div`, {
+              className: `rise mt-10 flex flex-wrap gap-3`,
+              style: { animationDelay: `240ms` },
+              children: [
+                (0, D.jsx)(e, {
+                  asChild: !0,
+                  size: `lg`,
+                  className: `h-12 px-6 text-base font-bold`,
+                  children: (0, D.jsxs)(o, {
+                    to: `/threads`,
+                    children: [(0, D.jsx)(b, {}), ` 进入讨论区`],
+                  }),
+                }),
+                (0, D.jsx)(e, {
+                  asChild: !0,
+                  size: `lg`,
+                  variant: `outline`,
+                  className: `h-12 px-6 text-base`,
+                  children: (0, D.jsxs)(o, {
+                    to: `/tracks`,
+                    children: [(0, D.jsx)(y, {}), ` 听新作品`],
+                  }),
+                }),
+              ],
+            }),
+            (0, D.jsx)(`dl`, {
+              className: `rise mt-14 grid max-w-lg grid-cols-3 border-t border-border pt-6`,
+              style: { animationDelay: `320ms` },
+              children: [
+                [`2,481`, `注册音乐人`],
+                [`13,907`, `首作品`],
+                [`86`, `个插件 / 采样包`],
+              ].map(([e, t]) =>
+                (0, D.jsxs)(
+                  `div`,
+                  {
+                    children: [
+                      (0, D.jsx)(`dt`, { className: `sr-only`, children: t }),
+                      (0, D.jsx)(`dd`, {
+                        className: `font-display text-3xl font-black sm:text-4xl`,
+                        children: e,
+                      }),
+                      (0, D.jsx)(`dd`, {
+                        className: `mt-1 text-xs text-muted-foreground`,
+                        children: t,
+                      }),
+                    ],
+                  },
+                  t,
+                ),
+              ),
+            }),
+          ],
+        }),
+        (0, D.jsx)(`div`, {
+          className: `relative lg:col-span-5`,
+          children: (0, D.jsxs)(`div`, {
+            className: `rise relative lg:-mr-24 lg:h-full`,
+            style: { animationDelay: `200ms` },
+            children: [
+              (0, D.jsx)(`img`, {
+                src: i(`hero.png`, 1100),
+                srcSet: `${i(`hero.png`, 640)} 640w, ${i(`hero.png`, 1100)} 1100w, ${i(`hero.png`, 1376)} 1376w`,
+                sizes: `(min-width: 1024px) 50vw, 100vw`,
+                alt: `昏暗的地下室现场，一位制作人在台灯下操作采样器和模块合成器，身后是人群`,
+                width: 1376,
+                height: 768,
+                fetchPriority: `high`,
+                className: `aspect-[4/3] w-full object-cover lg:aspect-auto lg:h-full`,
+              }),
+              (0, D.jsx)(`span`, {
+                className: `absolute -top-3 left-6 rotate-[-4deg] bg-foreground px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-background`,
+                children: `成都 · B2 · 23:47`,
+              }),
+              (0, D.jsxs)(`div`, {
+                className: `absolute right-4 -bottom-8 left-4 border border-border bg-background/95 p-4 backdrop-blur sm:left-auto sm:w-80 lg:right-28`,
+                children: [
+                  (0, D.jsxs)(`p`, {
+                    className: `flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary`,
+                    children: [(0, D.jsx)(h, {}), ` 本周播放第一`],
+                  }),
+                  (0, D.jsxs)(`div`, {
+                    className: `mt-3 flex items-center gap-3`,
+                    children: [
+                      (0, D.jsx)(f, { track: t }),
+                      (0, D.jsxs)(`div`, {
+                        className: `min-w-0`,
+                        children: [
+                          (0, D.jsx)(`p`, {
+                            className: `truncate font-semibold`,
+                            children: t.title,
+                          }),
+                          (0, D.jsxs)(`p`, {
+                            className: `truncate text-sm text-muted-foreground`,
+                            children: [r.name, ` · `, n(t.plays), ` 次播放`],
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                  (0, D.jsx)(u, { track: t, bars: 40, className: `mt-3 h-7` }),
+                ],
+              }),
+            ],
+          }),
+        }),
+      ],
+    }),
+  });
+}
+function A() {
+  let e = [...s, ...s];
+  return (0, D.jsx)(`div`, {
+    className: `overflow-hidden border-b border-border bg-primary py-3 text-primary-foreground`,
+    "aria-hidden": !0,
+    children: (0, D.jsx)(`div`, {
+      className: `animate-marquee flex w-max gap-10 whitespace-nowrap`,
+      children: e.map((e, t) =>
+        (0, D.jsxs)(
+          `span`,
+          {
+            className: `flex items-center gap-10 font-display text-2xl font-black uppercase tracking-wider`,
+            children: [
+              e,
+              (0, D.jsx)(`span`, {
+                className: `size-2 rotate-45 bg-primary-foreground`,
+              }),
+            ],
+          },
+          t,
+        ),
+      ),
+    }),
+  });
+}
+function j() {
+  let e = v((e) => e.tracks),
+    { current: t, playing: o } = _(),
+    s = [...e].sort((e, t) => t.plays - e.plays).slice(0, 6);
+  return (0, D.jsxs)(`section`, {
+    className: `mx-auto max-w-content px-4 py-20 sm:px-6`,
+    children: [
+      (0, D.jsx)(m, {
+        kicker: `Chart / 本周`,
+        title: `地下榜`,
+        to: `/tracks`,
+        linkLabel: `全部作品`,
+      }),
+      (0, D.jsx)(`ol`, {
+        className: `grid gap-x-10 md:grid-cols-2`,
+        children: s.map((e, s) => {
+          let c = d(e.artistId),
+            l = t?.id === e.id;
+          return (0, D.jsxs)(
+            `li`,
+            {
+              className: a(
+                `group flex items-center gap-4 border-b border-border py-4 transition-colors`,
+                l && `border-primary/50`,
+              ),
+              children: [
+                (0, D.jsx)(`span`, {
+                  className: a(
+                    `w-12 font-display text-5xl font-black tabular-nums text-foreground/20 transition-colors group-hover:text-foreground/50`,
+                    l && `text-primary`,
+                  ),
+                  children: String(s + 1).padStart(2, `0`),
+                }),
+                (0, D.jsx)(`img`, {
+                  src: i(e.cover, 128, 128),
+                  alt: ``,
+                  width: 64,
+                  height: 64,
+                  loading: `lazy`,
+                  className: `size-16 object-cover`,
+                }),
+                (0, D.jsxs)(`div`, {
+                  className: `min-w-0 flex-1`,
+                  children: [
+                    (0, D.jsxs)(`p`, {
+                      className: `flex items-center gap-2 truncate font-semibold`,
+                      children: [l && o && (0, D.jsx)(h, {}), e.title],
+                    }),
+                    (0, D.jsxs)(`p`, {
+                      className: `truncate text-sm text-muted-foreground`,
+                      children: [
+                        (0, D.jsx)(g, { artist: c, className: `font-normal` }),
+                        ` · `,
+                        e.genre,
+                      ],
+                    }),
+                  ],
+                }),
+                (0, D.jsx)(`span`, {
+                  className: `hidden font-mono text-xs text-muted-foreground sm:block`,
+                  children: n(e.plays),
+                }),
+                (0, D.jsx)(`span`, {
+                  className: `hidden w-10 font-mono text-xs text-muted-foreground lg:block`,
+                  children: r(e.duration),
+                }),
+                (0, D.jsx)(f, { track: e, size: `sm` }),
+              ],
+            },
+            e.id,
+          );
+        }),
+      }),
+    ],
+  });
+}
+function M() {
+  let t = [...v((e) => e.threads)]
+    .sort((e, t) => t.likes - e.likes)
+    .slice(0, 3);
+  return (0, D.jsx)(`section`, {
+    className: `border-y border-border bg-card/40`,
+    children: (0, D.jsxs)(`div`, {
+      className: `mx-auto grid max-w-content gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[22rem_1fr]`,
+      children: [
+        (0, D.jsxs)(`div`, {
+          className: `lg:sticky lg:top-28 lg:self-start`,
+          children: [
+            (0, D.jsx)(`p`, {
+              className: `font-mono text-xs uppercase tracking-[0.25em] text-primary`,
+              children: `Threads / 讨论`,
+            }),
+            (0, D.jsxs)(`h2`, {
+              className: `mt-2 font-cn text-4xl leading-tight sm:text-5xl`,
+              children: [`大家`, (0, D.jsx)(`br`, {}), `正在吵什么`],
+            }),
+            (0, D.jsx)(`p`, {
+              className: `mt-5 text-muted-foreground`,
+              children: `作品反馈、混音母带、采样版权、器材和现场。发一条动态，带上你的作品，懂行的人会来回复。`,
+            }),
+            (0, D.jsx)(e, {
+              asChild: !0,
+              className: `mt-8 font-bold`,
+              children: (0, D.jsxs)(o, {
+                to: `/threads`,
+                children: [`去讨论区 `, (0, D.jsx)(w, {})],
+              }),
+            }),
+          ],
+        }),
+        (0, D.jsx)(`div`, {
+          className: `border-t border-border bg-background/60`,
+          children: t.map((e) => (0, D.jsx)(S, { thread: e }, e.id)),
+        }),
+      ],
+    }),
+  });
+}
+function N() {
+  return (0, D.jsxs)(`section`, {
+    className: `py-20`,
+    children: [
+      (0, D.jsx)(`div`, {
+        className: `mx-auto max-w-content px-4 sm:px-6`,
+        children: (0, D.jsx)(m, {
+          kicker: `Plugins / 工具`,
+          title: `插件专区`,
+          to: `/plugins`,
+          linkLabel: `逛插件区`,
+        }),
+      }),
+      (0, D.jsx)(`div`, {
+        className: `scrollbar-none mx-auto flex max-w-content snap-x gap-5 overflow-x-auto px-4 pb-2 sm:px-6`,
+        children: t.slice(0, 6).map((e, t) => {
+          let n = d(e.makerId);
+          return (0, D.jsxs)(
+            o,
+            {
+              to: `/plugins`,
+              search: { p: e.id },
+              className: a(
+                `group w-72 shrink-0 snap-start transition-transform hover:-translate-y-1 motion-reduce:transition-none`,
+                t % 2 == 1 && `md:mt-10`,
+              ),
+              children: [
+                (0, D.jsx)(l, { plugin: e }),
+                (0, D.jsxs)(`div`, {
+                  className: `mt-3 flex items-start justify-between gap-3`,
+                  children: [
+                    (0, D.jsxs)(`div`, {
+                      className: `min-w-0`,
+                      children: [
+                        (0, D.jsx)(`p`, {
+                          className: `truncate font-semibold group-hover:text-primary`,
+                          children: e.name,
+                        }),
+                        (0, D.jsx)(`p`, {
+                          className: `truncate text-sm text-muted-foreground`,
+                          children: e.tagline,
+                        }),
+                        (0, D.jsxs)(`p`, {
+                          className: `mt-1 text-xs text-muted-foreground`,
+                          children: [`by `, n.name],
+                        }),
+                      ],
+                    }),
+                    (0, D.jsx)(`span`, {
+                      className: a(
+                        `shrink-0 border px-2 py-0.5 font-mono text-xs`,
+                        e.price === 0
+                          ? `border-primary text-primary`
+                          : `border-border`,
+                      ),
+                      children: e.price === 0 ? `FREE` : `¥${e.price}`,
+                    }),
+                  ],
+                }),
+              ],
+            },
+            e.id,
+          );
+        }),
+      }),
+    ],
+  });
+}
+function P() {
+  let e = v((e) => e.threads);
+  return (0, D.jsx)(`section`, {
+    className: `mx-auto max-w-content px-4 sm:px-6`,
+    children: (0, D.jsxs)(`div`, {
+      className: `relative grid overflow-hidden border border-border bg-card md:grid-cols-[1.2fr_1fr]`,
+      children: [
+        (0, D.jsx)(`div`, {
+          className: `halftone pointer-events-none absolute inset-0 opacity-20`,
+          "aria-hidden": !0,
+        }),
+        (0, D.jsxs)(`div`, {
+          className: `relative p-8 sm:p-12`,
+          children: [
+            (0, D.jsxs)(`p`, {
+              className: `flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary`,
+              children: [
+                (0, D.jsx)(E, { className: `size-4` }),
+                ` App / 开发中`,
+              ],
+            }),
+            (0, D.jsx)(`h2`, {
+              className: `mt-4 font-cn text-4xl leading-tight sm:text-5xl`,
+              children: `口袋里的地下室`,
+            }),
+            (0, D.jsx)(`p`, {
+              className: `mt-5 max-w-md text-muted-foreground`,
+              children: `Undercurrent App 正在制作中。账号、讨论、作品和收藏与网站完全互通：通勤路上听新歌，演出现场直接发动态。`,
+            }),
+            (0, D.jsx)(`ul`, {
+              className: `mt-8 space-y-3 text-sm`,
+              children: [
+                [y, `后台播放与离线收藏`],
+                [b, `回复和点赞的实时推送`],
+                [x, `手机上收藏插件，回到电脑再下载`],
+              ].map(([e, t], n) =>
+                (0, D.jsxs)(
+                  `li`,
+                  {
+                    className: `flex items-center gap-3`,
+                    children: [
+                      (0, D.jsx)(`span`, {
+                        className: `grid size-8 place-items-center border border-border`,
+                        children: (0, D.jsx)(e, {
+                          className: `size-4 text-primary`,
+                        }),
+                      }),
+                      t,
+                    ],
+                  },
+                  n,
+                ),
+              ),
+            }),
+          ],
+        }),
+        (0, D.jsx)(`div`, {
+          className: `relative flex items-end justify-center px-8 pt-8`,
+          children: (0, D.jsxs)(`div`, {
+            className: `w-60 translate-y-8 rounded-t-[2rem] border-[6px] border-b-0 border-foreground/80 bg-background p-3 pb-10 shadow-2xl`,
+            children: [
+              (0, D.jsx)(`div`, {
+                className: `mx-auto mb-3 h-1.5 w-16 rounded-full bg-foreground/30`,
+              }),
+              (0, D.jsx)(`p`, {
+                className: `px-1 font-display text-sm font-bold tracking-[0.08em]`,
+                children: `Undercurrent`,
+              }),
+              (0, D.jsx)(`div`, {
+                className: `mt-3 space-y-2`,
+                children: e
+                  .slice(0, 3)
+                  .map((e) =>
+                    (0, D.jsxs)(
+                      `div`,
+                      {
+                        className: `border border-border p-2`,
+                        children: [
+                          (0, D.jsx)(`p`, {
+                            className: `text-[11px] font-semibold`,
+                            children: d(e.authorId).name,
+                          }),
+                          (0, D.jsx)(`p`, {
+                            className: `line-clamp-2 text-[10px] leading-snug text-muted-foreground`,
+                            children: e.body,
+                          }),
+                        ],
+                      },
+                      e.id,
+                    ),
+                  ),
+              }),
+              (0, D.jsxs)(`div`, {
+                className: `mt-3 flex items-center gap-2 bg-primary p-2 text-primary-foreground`,
+                children: [
+                  (0, D.jsx)(`span`, {
+                    className: `size-6 bg-primary-foreground/80`,
+                  }),
+                  (0, D.jsx)(`span`, {
+                    className: `text-[10px] font-bold`,
+                    children: `雾都漂移 · 灰烬`,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        }),
+      ],
+    }),
+  });
+}
+export { O as component };

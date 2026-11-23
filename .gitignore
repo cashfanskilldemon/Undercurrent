@@ -1,0 +1,26 @@
+# IDE / 编辑器
+.idea/
+.vscode/
+*.iml
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 依赖
+node_modules/
+package-lock.json
+
+# 日志与临时文件
+*.log
+*.tmp
+.~*
+
+# 本地验证/调试页（临时生成，不入库）
+public/vt.html
+public/grid-probe.html
+public/probe.html
+public/viewport-test.html
+public/cursor-test.html
+public/cursor-compare.html

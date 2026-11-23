@@ -1,0 +1,12 @@
+{
+  "name": "subterra-local",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Locally recovered build of the SUBTERRA Netlify demo",
+  "scripts": {
+    "serve": "node server.mjs",
+    "start": "node server.mjs",
+    "extract:data": "node scripts/extract-data.mjs"
+  }
+}

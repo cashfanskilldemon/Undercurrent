@@ -1,0 +1,220 @@
+import {
+  A as e,
+  O as t,
+  R as n,
+  U as r,
+  d as i,
+  f as a,
+  h as o,
+  ht as s,
+  k as c,
+  n as l,
+  pt as u,
+  t as d,
+  y as f,
+} from "./bits-CX_ZQ6ey.js";
+import { a as p, n as m, r as h, t as g } from "./thread-card-BiVhtaO2.js";
+import { d as _, t as v } from "./index-D8H8Au6A.js";
+var y = {
+  name: `arrow-left`,
+  size: 24,
+  node: [
+    [`path`, { d: `m12 19-7-7 7-7`, key: `1l729n` }],
+    [`path`, { d: `M19 12H5`, key: `x3x0zl` }],
+  ],
+};
+y.node;
+var b = c(y),
+  x = s(u()),
+  S = r();
+function C() {
+  let { threadId: r } = v.useParams(),
+    s = f((e) => e.threads.find((e) => e.id === r)),
+    [c, u] = (0, x.useState)(``),
+    [y, C] = (0, x.useState)(null);
+  if (!s)
+    return (0, S.jsxs)(`div`, {
+      className: `mx-auto max-w-reading px-4 py-24 text-center`,
+      children: [
+        (0, S.jsx)(`p`, {
+          className: `font-cn text-3xl`,
+          children: `这条讨论不见了`,
+        }),
+        (0, S.jsx)(`p`, {
+          className: `mt-3 text-muted-foreground`,
+          children: `可能是刷新后本地发布的内容被清空了。`,
+        }),
+        (0, S.jsx)(e, {
+          asChild: !0,
+          className: `mt-8`,
+          children: (0, S.jsx)(n, { to: `/threads`, children: `回到讨论区` }),
+        }),
+      ],
+    });
+  let w = o(s.authorId);
+  return (0, S.jsxs)(`div`, {
+    className: `mx-auto max-w-2xl px-4 py-10 sm:px-6`,
+    children: [
+      (0, S.jsxs)(n, {
+        to: `/threads`,
+        search: { c: s.channel },
+        className: `inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary`,
+        children: [(0, S.jsx)(b, { className: `size-4` }), ` `, s.channel],
+      }),
+      (0, S.jsxs)(`article`, {
+        className: `mt-6 border-b border-border pb-6`,
+        children: [
+          (0, S.jsxs)(`header`, {
+            className: `flex items-center gap-3`,
+            children: [
+              (0, S.jsx)(l, { artist: w, size: `lg` }),
+              (0, S.jsxs)(`div`, {
+                children: [
+                  (0, S.jsx)(d, { artist: w, className: `text-lg` }),
+                  (0, S.jsxs)(`p`, {
+                    className: `text-sm text-muted-foreground`,
+                    children: [`@`, w.handle, ` · `, w.city, ` · `, w.role],
+                  }),
+                ],
+              }),
+              (0, S.jsx)(`span`, {
+                className: `ml-auto font-mono text-xs text-muted-foreground`,
+                children: s.time,
+              }),
+            ],
+          }),
+          (0, S.jsx)(`h1`, {
+            className: `mt-6 text-xl leading-relaxed sm:text-2xl`,
+            children: s.body,
+          }),
+          s.tags.length > 0 &&
+            (0, S.jsx)(`p`, {
+              className: `mt-4 flex flex-wrap gap-3 text-primary`,
+              children: s.tags.map((e) =>
+                (0, S.jsxs)(
+                  n,
+                  {
+                    to: `/threads`,
+                    search: { tag: e },
+                    className: `hover:underline`,
+                    children: [`#`, e],
+                  },
+                  e,
+                ),
+              ),
+            }),
+          (0, S.jsx)(h, { thread: s }),
+          (0, S.jsx)(m, { thread: s }),
+        ],
+      }),
+      (0, S.jsxs)(`form`, {
+        onSubmit: (e) => {
+          if ((e.preventDefault(), c.trim().length < 1))
+            return C(`回复不能为空`);
+          (a(s.id, c.trim()), u(``), C(null), t.success(`回复已发布`));
+        },
+        className: `flex gap-3 border-b border-border py-5`,
+        children: [
+          (0, S.jsx)(l, { artist: i }),
+          (0, S.jsxs)(`div`, {
+            className: `flex-1 space-y-2`,
+            children: [
+              (0, S.jsx)(`label`, {
+                htmlFor: `reply`,
+                className: `sr-only`,
+                children: `写回复`,
+              }),
+              (0, S.jsx)(_, {
+                id: `reply`,
+                value: c,
+                "aria-invalid": !!y,
+                onChange: (e) => {
+                  (u(e.target.value), y && C(null));
+                },
+                placeholder: `回复 @${w.handle}`,
+                className: `min-h-20 resize-none bg-background/60`,
+              }),
+              y &&
+                (0, S.jsx)(`p`, {
+                  role: `alert`,
+                  className: `text-sm text-destructive`,
+                  children: y,
+                }),
+              (0, S.jsx)(`div`, {
+                className: `flex justify-end`,
+                children: (0, S.jsx)(e, {
+                  type: `submit`,
+                  size: `sm`,
+                  className: `font-bold`,
+                  children: `回复`,
+                }),
+              }),
+            ],
+          }),
+        ],
+      }),
+      (0, S.jsxs)(`section`, {
+        "aria-label": `回复`,
+        children: [
+          (0, S.jsxs)(`h2`, {
+            className: `flex items-center gap-2 py-5 font-mono text-xs uppercase tracking-[0.25em] text-primary`,
+            children: [
+              (0, S.jsx)(p, { className: `size-4` }),
+              ` `,
+              s.replies.length,
+              ` 条回复`,
+            ],
+          }),
+          s.replies.length === 0
+            ? (0, S.jsx)(`p`, {
+                className: `border border-dashed border-border px-6 py-12 text-center text-muted-foreground`,
+                children: `还没有回复。第一个开口的人通常最有用。`,
+              })
+            : (0, S.jsx)(`ol`, {
+                className: `space-y-0`,
+                children: s.replies.map((e) => {
+                  let t = o(e.authorId);
+                  return (0, S.jsxs)(
+                    `li`,
+                    {
+                      className: `flex gap-3 border-l-2 border-border py-4 pl-4 hover:border-primary`,
+                      children: [
+                        (0, S.jsx)(l, { artist: t, size: `sm` }),
+                        (0, S.jsxs)(`div`, {
+                          className: `min-w-0 flex-1`,
+                          children: [
+                            (0, S.jsxs)(`p`, {
+                              className: `flex flex-wrap items-center gap-2 text-sm`,
+                              children: [
+                                (0, S.jsx)(d, { artist: t }),
+                                (0, S.jsxs)(`span`, {
+                                  className: `text-muted-foreground`,
+                                  children: [`@`, t.handle, ` · `, e.time],
+                                }),
+                              ],
+                            }),
+                            (0, S.jsx)(`p`, {
+                              className: `mt-1 leading-relaxed`,
+                              children: e.body,
+                            }),
+                            (0, S.jsx)(`div`, {
+                              className: `-ml-1.5 mt-1`,
+                              children: (0, S.jsx)(g, {
+                                id: e.id,
+                                base: e.likes,
+                              }),
+                            }),
+                          ],
+                        }),
+                      ],
+                    },
+                    e.id,
+                  );
+                }),
+              }),
+        ],
+      }),
+    ],
+  });
+}
+export { C as component };

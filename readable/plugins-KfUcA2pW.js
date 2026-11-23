@@ -1,0 +1,463 @@
+import {
+  A as e,
+  C as t,
+  F as n,
+  O as r,
+  P as i,
+  R as a,
+  U as o,
+  a as s,
+  h as c,
+  ht as l,
+  k as u,
+  n as d,
+  pt as f,
+  t as p,
+  w as m,
+} from "./bits-CX_ZQ6ey.js";
+import { t as h } from "./useNavigate-1P0YKckP.js";
+import { t as g } from "./messages-square-C5s0jiyu.js";
+import { t as _ } from "./search-DTyTdjq8.js";
+import {
+  c as v,
+  f as y,
+  l as b,
+  o as x,
+  r as S,
+  s as C,
+  u as w,
+} from "./index-D8H8Au6A.js";
+var T = {
+  name: `download`,
+  size: 24,
+  node: [
+    [`path`, { d: `M12 15V3`, key: `m9g1x1` }],
+    [`path`, { d: `M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4`, key: `ih7n3h` }],
+    [`path`, { d: `m7 10 5 5 5-5`, key: `brsn70` }],
+  ],
+};
+T.node;
+var E = u(T),
+  D = {
+    name: `shopping-bag`,
+    size: 24,
+    node: [
+      [`path`, { d: `M16 10a4 4 0 0 1-8 0`, key: `1ltviw` }],
+      [`path`, { d: `M3.103 6.034h17.794`, key: `awc11p` }],
+      [
+        `path`,
+        {
+          d: `M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z`,
+          key: `o988cm`,
+        },
+      ],
+    ],
+  };
+D.node;
+var O = u(D),
+  k = {
+    name: `star`,
+    size: 24,
+    node: [
+      [
+        `path`,
+        {
+          d: `M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z`,
+          key: `r04s7s`,
+        },
+      ],
+    ],
+  };
+k.node;
+var A = u(k),
+  j = l(f()),
+  M = o();
+function N() {
+  let { p: n } = S.useSearch(),
+    r = h({ from: `/plugins` }),
+    [a, o] = (0, j.useState)(null),
+    [l, u] = (0, j.useState)(`all`),
+    [d, f] = (0, j.useState)(``),
+    p = t.find((e) => e.id === n) ?? null,
+    g = t[0],
+    v = (0, j.useMemo)(
+      () =>
+        t.filter(
+          (e) =>
+            (!a || e.category === a) &&
+            (l === `all` || (l === `free` ? e.price === 0 : e.price > 0)) &&
+            (!d.trim() ||
+              (e.name + e.tagline + c(e.makerId).name)
+                .toLowerCase()
+                .includes(d.trim().toLowerCase())),
+        ),
+      [a, l, d],
+    ),
+    b = (e) =>
+      void r({ search: e ? { p: e } : {}, replace: !0, resetScroll: !1 });
+  return (0, M.jsxs)(`div`, {
+    className: `mx-auto max-w-content px-4 py-10 sm:px-6`,
+    children: [
+      (0, M.jsxs)(`section`, {
+        className: `grid items-center gap-8 border-b border-border pb-12 md:grid-cols-[1fr_1.1fr]`,
+        children: [
+          (0, M.jsxs)(`div`, {
+            children: [
+              (0, M.jsx)(`p`, {
+                className: `font-mono text-xs uppercase tracking-[0.25em] text-primary`,
+                children: `Plugins / 插件专区`,
+              }),
+              (0, M.jsx)(`h1`, {
+                className: `mt-2 font-cn text-5xl sm:text-6xl`,
+                children: `插件专区`,
+              }),
+              (0, M.jsx)(`p`, {
+                className: `mt-4 max-w-md text-muted-foreground`,
+                children: `社区开发者做的插件、采样包和预设。很多是免费的，每一个都能在讨论区找到作者本人。`,
+              }),
+              (0, M.jsxs)(`div`, {
+                className: `mt-8 border-l-2 border-primary pl-4`,
+                children: [
+                  (0, M.jsx)(`p`, {
+                    className: `font-mono text-[11px] uppercase tracking-widest text-muted-foreground`,
+                    children: `本周推荐`,
+                  }),
+                  (0, M.jsx)(`p`, {
+                    className: `mt-1 text-2xl font-semibold`,
+                    children: g.name,
+                  }),
+                  (0, M.jsx)(`p`, {
+                    className: `text-muted-foreground`,
+                    children: g.tagline,
+                  }),
+                  (0, M.jsx)(e, {
+                    className: `mt-4 font-bold`,
+                    onClick: () => b(g.id),
+                    children: `查看详情`,
+                  }),
+                ],
+              }),
+            ],
+          }),
+          (0, M.jsxs)(`button`, {
+            type: `button`,
+            onClick: () => b(g.id),
+            className: `group relative block rotate-1 transition-transform hover:rotate-0 motion-reduce:transition-none`,
+            "aria-label": `查看 ${g.name}`,
+            children: [
+              (0, M.jsx)(s, { plugin: g, className: `shadow-2xl` }),
+              (0, M.jsx)(`span`, {
+                className: `tape absolute -top-3 left-10 h-6 w-28 -rotate-6 opacity-90`,
+                "aria-hidden": !0,
+              }),
+            ],
+          }),
+        ],
+      }),
+      (0, M.jsxs)(`div`, {
+        className: `sticky top-16 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6`,
+        children: [
+          (0, M.jsx)(`div`, {
+            className: `scrollbar-none flex gap-1.5 overflow-x-auto`,
+            role: `group`,
+            "aria-label": `分类`,
+            children: [null, ...m].map((e) =>
+              (0, M.jsx)(
+                `button`,
+                {
+                  type: `button`,
+                  "aria-pressed": a === e,
+                  onClick: () => o(e),
+                  className: i(
+                    `shrink-0 border px-3 py-1 text-sm transition-colors`,
+                    a === e
+                      ? `border-primary bg-primary text-primary-foreground`
+                      : `border-border text-muted-foreground hover:text-foreground`,
+                  ),
+                  children: e ?? `全部`,
+                },
+                e ?? `all`,
+              ),
+            ),
+          }),
+          (0, M.jsx)(`div`, {
+            className: `flex border border-border`,
+            role: `group`,
+            "aria-label": `价格`,
+            children: [
+              [`all`, `全部`],
+              [`free`, `免费`],
+              [`paid`, `付费`],
+            ].map(([e, t]) =>
+              (0, M.jsx)(
+                `button`,
+                {
+                  type: `button`,
+                  "aria-pressed": l === e,
+                  onClick: () => u(e),
+                  className: i(
+                    `px-3 py-1 text-sm`,
+                    l === e
+                      ? `bg-secondary text-foreground`
+                      : `text-muted-foreground hover:text-foreground`,
+                  ),
+                  children: t,
+                },
+                e,
+              ),
+            ),
+          }),
+          (0, M.jsxs)(`label`, {
+            className: `relative ml-auto w-full sm:w-56`,
+            children: [
+              (0, M.jsx)(`span`, {
+                className: `sr-only`,
+                children: `搜索插件`,
+              }),
+              (0, M.jsx)(_, {
+                className: `pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground`,
+              }),
+              (0, M.jsx)(y, {
+                value: d,
+                onChange: (e) => f(e.target.value),
+                placeholder: `搜索插件或作者`,
+                className: `h-8 pl-8`,
+              }),
+            ],
+          }),
+        ],
+      }),
+      v.length === 0
+        ? (0, M.jsxs)(`div`, {
+            className: `py-28 text-center`,
+            children: [
+              (0, M.jsx)(`p`, {
+                className: `font-cn text-2xl`,
+                children: `没找到匹配的插件`,
+              }),
+              (0, M.jsx)(`p`, {
+                className: `mt-2 text-sm text-muted-foreground`,
+                children: `试试别的关键词，或者清空筛选。`,
+              }),
+              (0, M.jsx)(e, {
+                variant: `outline`,
+                className: `mt-6`,
+                onClick: () => {
+                  (o(null), u(`all`), f(``));
+                },
+                children: `清空筛选`,
+              }),
+            ],
+          })
+        : (0, M.jsx)(`ul`, {
+            className: `mt-8 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3`,
+            children: v.map((e) =>
+              (0, M.jsx)(
+                `li`,
+                {
+                  children: (0, M.jsx)(F, { plugin: e, onOpen: () => b(e.id) }),
+                },
+                e.id,
+              ),
+            ),
+          }),
+      (0, M.jsx)(I, { plugin: p, onClose: () => b(void 0) }),
+    ],
+  });
+}
+function P({ plugin: e, className: t }) {
+  return (0, M.jsx)(`span`, {
+    className: i(
+      `border px-2 py-0.5 font-mono text-xs`,
+      e.price === 0
+        ? `border-primary text-primary`
+        : `border-border text-foreground`,
+      t,
+    ),
+    children: e.price === 0 ? `FREE` : `¥${e.price}`,
+  });
+}
+function F({ plugin: e, onOpen: t }) {
+  let r = c(e.makerId);
+  return (0, M.jsxs)(`button`, {
+    type: `button`,
+    onClick: t,
+    className: `group block w-full text-left`,
+    children: [
+      (0, M.jsx)(s, {
+        plugin: e,
+        className: `transition-colors group-hover:border-primary/60`,
+      }),
+      (0, M.jsxs)(`div`, {
+        className: `mt-3 flex items-start justify-between gap-3`,
+        children: [
+          (0, M.jsxs)(`div`, {
+            className: `min-w-0`,
+            children: [
+              (0, M.jsx)(`p`, {
+                className: `truncate text-lg font-semibold group-hover:text-primary`,
+                children: e.name,
+              }),
+              (0, M.jsx)(`p`, {
+                className: `truncate text-sm text-muted-foreground`,
+                children: e.tagline,
+              }),
+            ],
+          }),
+          (0, M.jsx)(P, { plugin: e, className: `shrink-0` }),
+        ],
+      }),
+      (0, M.jsxs)(`div`, {
+        className: `mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground`,
+        children: [
+          (0, M.jsx)(`span`, { children: r.name }),
+          (0, M.jsxs)(`span`, {
+            className: `inline-flex items-center gap-1`,
+            children: [
+              (0, M.jsx)(A, { className: `size-3 fill-current text-primary` }),
+              ` `,
+              e.rating,
+              ` `,
+              `(`,
+              e.reviews,
+              `)`,
+            ],
+          }),
+          (0, M.jsxs)(`span`, {
+            className: `inline-flex items-center gap-1`,
+            children: [
+              (0, M.jsx)(E, { className: `size-3` }),
+              ` `,
+              n(e.downloads),
+            ],
+          }),
+          (0, M.jsx)(`span`, {
+            className: `border border-border px-1.5`,
+            children: e.category,
+          }),
+        ],
+      }),
+    ],
+  });
+}
+function I({ plugin: t, onClose: i }) {
+  let o = t ? c(t.makerId) : null;
+  return (0, M.jsx)(x, {
+    open: !!t,
+    onOpenChange: (e) => !e && i(),
+    children: (0, M.jsx)(C, {
+      className: `max-h-[90svh] overflow-y-auto sm:max-w-2xl`,
+      children:
+        t &&
+        o &&
+        (0, M.jsxs)(M.Fragment, {
+          children: [
+            (0, M.jsx)(s, {
+              plugin: t,
+              hideVersion: !0,
+              className: `-mx-6 -mt-6 border-x-0 border-t-0`,
+            }),
+            (0, M.jsxs)(b, {
+              children: [
+                (0, M.jsxs)(`div`, {
+                  className: `flex items-center gap-2`,
+                  children: [
+                    (0, M.jsx)(`span`, {
+                      className: `border border-border px-1.5 font-mono text-[11px] text-muted-foreground`,
+                      children: t.category,
+                    }),
+                    (0, M.jsx)(P, { plugin: t }),
+                  ],
+                }),
+                (0, M.jsx)(w, {
+                  className: `text-3xl font-semibold`,
+                  children: t.name,
+                }),
+                (0, M.jsx)(v, { children: t.tagline }),
+              ],
+            }),
+            (0, M.jsx)(`p`, {
+              className: `leading-relaxed text-foreground/90`,
+              children: t.description,
+            }),
+            (0, M.jsx)(`dl`, {
+              className: `grid grid-cols-2 gap-px border border-border bg-border text-sm sm:grid-cols-4`,
+              children: [
+                [`格式`, t.formats.join(` / `)],
+                [`系统`, t.os.join(` / `)],
+                [`版本`, `v${t.version} · ${t.updated}`],
+                [`大小`, t.size],
+              ].map(([e, t]) =>
+                (0, M.jsxs)(
+                  `div`,
+                  {
+                    className: `bg-popover p-3`,
+                    children: [
+                      (0, M.jsx)(`dt`, {
+                        className: `font-mono text-[11px] uppercase tracking-widest text-muted-foreground`,
+                        children: e,
+                      }),
+                      (0, M.jsx)(`dd`, { className: `mt-1`, children: t }),
+                    ],
+                  },
+                  e,
+                ),
+              ),
+            }),
+            (0, M.jsxs)(`div`, {
+              className: `flex items-center gap-3`,
+              children: [
+                (0, M.jsx)(d, { artist: o, size: `sm` }),
+                (0, M.jsxs)(`div`, {
+                  className: `text-sm`,
+                  children: [
+                    (0, M.jsx)(p, { artist: o }),
+                    (0, M.jsxs)(`p`, {
+                      className: `text-xs text-muted-foreground`,
+                      children: [
+                        o.city,
+                        ` · `,
+                        o.role,
+                        ` · `,
+                        n(t.downloads),
+                        ` `,
+                        `次下载 · ★ `,
+                        t.rating,
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            (0, M.jsxs)(`div`, {
+              className: `flex flex-wrap gap-3`,
+              children: [
+                (0, M.jsxs)(e, {
+                  className: `flex-1 font-bold`,
+                  onClick: () =>
+                    r(t.price === 0 ? `下载即将开放` : `购买即将开放`, {
+                      description: `文件托管和支付正在接入，先收藏一下吧。`,
+                    }),
+                  children: [
+                    t.price === 0 ? (0, M.jsx)(E, {}) : (0, M.jsx)(O, {}),
+                    t.price === 0 ? `免费下载` : `购买 ¥${t.price}`,
+                  ],
+                }),
+                (0, M.jsx)(e, {
+                  asChild: !0,
+                  variant: `outline`,
+                  className: `flex-1`,
+                  children: (0, M.jsxs)(a, {
+                    to: `/threads`,
+                    search: { c: `器材` },
+                    children: [(0, M.jsx)(g, {}), ` 去器材频道讨论`],
+                  }),
+                }),
+              ],
+            }),
+          ],
+        }),
+    }),
+  });
+}
+export { N as component };
