@@ -1,6 +1,6 @@
 import '@/global.css';
 
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -34,6 +34,10 @@ export default function RootLayout() {
   // 只在 Web 宽屏生效：≥768 左导航，≥1120 右栏；App 恒为单列
   const { wide, xl, width } = useBreakpoint();
 
+  // 登录页要整屏独占：不显示左导航 / 右栏，也不限制中列宽度
+  const pathname = usePathname();
+  const bare = pathname === '/login';
+
   /**
    * 中列要相对「整个视口」居中（对齐 Threads），但左右两侧宽度不对称
    * （导航 80 / 右栏 340），所以给中列容器补一段左侧内边距抵掉差值。
@@ -52,11 +56,15 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <StatusBar style="light" />
         <View style={styles.frame}>
-          {wide ? <SideNav /> : null}
+          {wide && !bare ? <SideNav /> : null}
 
           {/* 中列：补偿左右两侧宽度差后，相对整个视口水平居中 */}
-          <View style={[styles.centerArea, centerOffset > 0 && { paddingLeft: centerOffset }]}>
-            <View style={[styles.center, wide && styles.centerWide]}>
+          <View
+            style={[
+              styles.centerArea,
+              !bare && centerOffset > 0 && { paddingLeft: centerOffset },
+            ]}>
+            <View style={[styles.center, wide && !bare && styles.centerWide]}>
               <Stack
                 key={userId ?? 'guest'}
                 screenOptions={{
@@ -79,7 +87,7 @@ export default function RootLayout() {
             </View>
           </View>
 
-          {xl ? <RightRail /> : null}
+          {xl && !bare ? <RightRail /> : null}
         </View>
         <ComposerDialog />
       </SafeAreaProvider>
