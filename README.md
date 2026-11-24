@@ -134,13 +134,21 @@ src/
 
 | 状态 | 行为 |
 |---|---|
-| 没有 token | 除了 `/login` 之外的所有路由都会被 `_layout.tsx` 重定向到登录页，**看不到应用内部界面**（`<Redirect href="/login" />`） |
+| 没有 token | 除了 `/login`、`/register`、`/forgot-password` 之外的所有路由都会被 `_layout.tsx` 重定向到登录页，**看不到应用内部界面**（`<Redirect href="/login" />`） |
 | 有 token | 直接进应用；访问 `/login` 会被送回 `/home` |
 | 登录 | `POST /api/auth/login` → `signIn(token, userId)` 写入内存 + localStorage → 跳 `/home` |
 | 刷新页面 | 启动时 `restoreAuth()` 同步读回 token，不会闪回登录页 |
 | 退出 / token 失效 | `signOut()` 清 token 与本地记录，`userId` 置空，立刻回到登录页 |
 
 请求带 `Authorization: Bearer <token>`，后端验签取用户；任何接口返回 401 时 `api.ts` 会清凭证并通知布局层切回登录页。发帖、上传等入口仍保留一层拦截（`ComposerProvider`），未登录会先跳 `/login`。
+
+三个页面共用 `components/auth-shell.tsx`（背景水印 + 品牌区 + 居中卡片），视觉完全一致：
+
+| 页面 | 路由 | 说明 |
+|---|---|---|
+| 登录 | `/login` | 账号 + 密码，底部有「注册新账号」与「忘记密码？」入口 |
+| 注册 | `/register` | 账号 / 昵称（选填）/ 密码 / 确认密码，注册成功直接登录 |
+| 忘记密码 | `/forgot-password` | 提交账号 → 给管理员发站内通知；不暴露账号是否存在 |
 
 演示账号：`admin` / `cashfans03`。
 ## 五、已完成 / 未做

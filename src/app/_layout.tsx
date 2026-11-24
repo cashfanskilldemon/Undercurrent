@@ -16,6 +16,9 @@ import { ComposerProvider } from '@/lib/composer';
 import { SessionContext } from '@/lib/session';
 import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
 
+/** 未登录可以停留的页面 */
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
+
 export default function RootLayout() {
   // 启动时同步读回上次登录态（Web 存在 localStorage），避免刷新后闪一下登录页
   const [restored] = useState(() => restoreAuth());
@@ -38,11 +41,11 @@ export default function RootLayout() {
   // 只在 Web 宽屏生效：≥768 左导航，≥1120 右栏；App 恒为单列
   const { wide, xl, width } = useBreakpoint();
 
-  // 登录页要整屏独占：不显示左导航 / 右栏，也不限制中列宽度
+  // 登录相关页面整屏独占：不显示左导航 / 右栏，也不限制中列宽度
   const pathname = usePathname();
-  const bare = pathname === '/login';
+  const bare = AUTH_ROUTES.includes(pathname);
 
-  // 没登录只能待在登录页；已登录就不用再进登录页
+  // 没登录只能待在登录相关页；已登录就不用再进这些页
   if (userId == null && !bare) {
     return <Redirect href="/login" />;
   }

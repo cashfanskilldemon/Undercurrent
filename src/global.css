@@ -8,6 +8,18 @@
   --font-serif: Georgia, 'Times New Roman', serif;
 }
 
+/* 浏览器自动填充会把输入框刷成白底，这里强制保持暗色（与 theme.colors.input 一致） */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: #eeebe1;
+  -webkit-box-shadow: 0 0 0 1000px #1b1b1b inset;
+  box-shadow: 0 0 0 1000px #1b1b1b inset;
+  caret-color: #eeebe1;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* 品牌文字标用的圆体（Quicksand 600，随 public/fonts 一起发布，不依赖外网） */
 @font-face {
   font-family: 'Undercurrent Rounded';
@@ -17,7 +29,7 @@
   font-display: swap;
 }
 
-/* 隐藏 Web 端原生滚动条，保持 Instagram / Threads 式的干净界面 */
+/* 隐藏 Web 端原生滚动条，保持干净的界面 */
 html,
 body,
 #root {
