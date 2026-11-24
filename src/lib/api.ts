@@ -74,7 +74,8 @@ async function request<T>(path: string, init?: RequestInit, query?: Query): Prom
   };
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  // 后端首次建连数据库可能十几秒（Hikari 懒加载），15 秒会误判超时；后端已加启动预热，这里留足余量
+  const timer = setTimeout(() => controller.abort(), 30000);
 
   let res: Response;
   try {
