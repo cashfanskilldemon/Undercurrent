@@ -57,7 +57,7 @@ export default function LoginScreen() {
           setAccount(v);
           setError(null);
         }}
-        placeholder="账号"
+        placeholder="账号或手机号"
         placeholderTextColor={colors.mutedForeground}
         autoCapitalize="none"
         autoCorrect={false}
