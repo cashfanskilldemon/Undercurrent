@@ -1,12 +1,13 @@
 import { createContext, useContext } from 'react';
 
-type Session = {
-  userId: number;
-  setUserId: (id: number) => void;
+export type Session = {
+  /** 当前登录用户 id，null 表示未登录（游客） */
+  userId: number | null;
+  setUserId: (id: number | null) => void;
 };
 
 export const SessionContext = createContext<Session>({
-  userId: 2,
+  userId: null,
   setUserId: () => {},
 });
 

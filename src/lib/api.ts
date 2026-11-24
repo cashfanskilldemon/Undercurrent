@@ -11,8 +11,8 @@ const fallback = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://lo
 
 export const API_BASE = (process.env.EXPO_PUBLIC_API_BASE ?? fallback).replace(/\/$/, '');
 
-/** 未接登录前用请求头模拟身份，与后端 X-User-Id 约定一致 */
-let currentUserId: number | null = 2;
+/** 未接真实登录前用请求头模拟身份，与后端 X-User-Id 约定一致；null = 游客 */
+let currentUserId: number | null = null;
 
 export function setCurrentUserId(id: number | null) {
   currentUserId = id;

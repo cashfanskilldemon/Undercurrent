@@ -3,6 +3,7 @@ import {
   Bell,
   Disc3,
   Home,
+  LogIn,
   MessageSquare,
   PenLine,
   Puzzle,
@@ -23,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Logo } from '@/components/logo';
 import { colors, radius, space } from '@/constants/theme';
 import { useComposer } from '@/lib/composer';
+import { useSession } from '@/lib/session';
 import { SIDE_NAV_WIDTH } from '@/lib/use-breakpoint';
 import { useUnreadCount } from '@/lib/unread';
 
@@ -148,11 +150,13 @@ export function SideNav() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { openComposer } = useComposer();
+  const { userId } = useSession();
   const unread = useUnreadCount();
   const { width } = useWindowDimensions();
   /** 80px 栏放不下英文标，让它伸到导航右侧的空白里；窗口窄到会把内容压住时隐藏 */
   const showWordmark = width >= 1400;
 
+  const loggedIn = userId != null;
   const meActive = pathname === '/me' || pathname.startsWith('/me/');
 
   return (
@@ -180,7 +184,7 @@ export function SideNav() {
               label={label}
               Icon={Icon}
               active={isActive(pathname, href)}
-              badge={href === '/notifications' ? unread : undefined}
+              badge={loggedIn && href === '/notifications' ? unread : undefined}
               onPress={() => router.push(href)}
             />
           ))}
@@ -195,12 +199,21 @@ export function SideNav() {
         onPress={() => openComposer('post')}
       />
 
-      <NavRow
-        label="我的"
-        Icon={UserRound}
-        active={meActive}
-        onPress={() => router.push('/me')}
-      />
+      {loggedIn ? (
+        <NavRow
+          label="我的"
+          Icon={UserRound}
+          active={meActive}
+          onPress={() => router.push('/me')}
+        />
+      ) : (
+        <NavRow
+          label="登录"
+          Icon={LogIn}
+          active={pathname === '/login'}
+          onPress={() => router.push('/login')}
+        />
+      )}
     </View>
   );
 }

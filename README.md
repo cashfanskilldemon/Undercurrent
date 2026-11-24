@@ -72,14 +72,15 @@ EXPO_PUBLIC_API_BASE=http://192.168.1.20:8080
 ```
 src/
 ├── app/                          路由（expo-router，文件即路由）
-│   ├── _layout.tsx               根 Stack + 三栏框架 + 调试身份 Provider
+│   ├── _layout.tsx               根 Stack + 三栏框架 + 登录态 Provider
 │   ├── (tabs)/
 │   │   ├── _layout.tsx           底部 4 个 tab（宽屏隐藏）
 │   │   ├── index.tsx             讨论：频道筛选 + 帖子流
 │   │   ├── tracks.tsx            作品：流派 + 排序（最新/播放/点赞）
 │   │   ├── plugins.tsx           插件：分类 + 两列网格
-│   │   └── me.tsx                我的：调试身份、后端连通性检测
-│   └── thread/[id].tsx           帖子详情 + 回复列表
+│   │   └── me.tsx                我的：登录入口 / 身份、后端连通性、退出登录
+│   ├── thread/[id].tsx           帖子详情 + 回复列表
+│   └── login.tsx                 演示登录页（选账号写入会话）
 ├── components/                   展示组件
 │   ├── thread-card.tsx           帖子卡（含五动作栏）
 │   ├── action-bar.tsx            点赞/评论/转发/分享/收藏
@@ -127,6 +128,19 @@ src/
 后端新增表/接口见 `undercurrent-api/src/main/resources/db/schema.sql` 与 `migration-20261124.sql`：
 `notification` 表、`thread.image` 字段、`user_follow` 假数据，以及 `/api/notifications`、`/api/users/{id}/follow`、`/api/search`、`POST /api/tracks`、`GET /api/threads?following=true`。
 
+### 登录与游客态
+
+会话由 `lib/session.ts` + `_layout.tsx` 里的 `userId` 管理，**默认 `null` 即游客**：
+
+| 位置 | 未登录 | 已登录 |
+|---|---|---|
+| 左导航底部 | 显示「登录」，点击进 `/login` | 显示「我的」，点击进 `/me` |
+| 发帖 / 上传 | 先跳 `/login`（`ComposerProvider` 里统一拦截） | 打开弹窗 |
+| 通知页 | 登录引导，不请求接口 | 正常拉取，未读数写进左导航角标 |
+| 我的页 | 只有登录入口 | 身份信息、后端连通性、退出登录 |
+
+`/login` 页列出后端推荐的演示账号，选中即写入会话并回到首页——因为 `app_user` 没有密码字段、后端也没有 `/api/auth`，所以暂不校验密码，接入真实鉴权时替换 `loginAs()` 即可。
+
 ## 五、已完成 / 未做
 
 **能用**：首页推荐/关注流、发现聚合搜索、通知列表与已读、发帖与上传作品（真实落库）、帖子流（分页 + 下拉刷新 + 触底加载）、频道筛选、作品列表与排序、播放计数、插件分类与网格、帖子详情与回复展示、点赞 / 收藏（乐观更新，失败回滚）、系统分享、宽屏 Web 三栏自适应。
@@ -136,7 +150,7 @@ src/
 | 功能 | 缺什么 |
 |---|---|
 | 发回复 | 后端没有 `POST /api/threads/{id}/replies`，底部输入框是占位 |
-| 登录 | 未接 JWT，用 `X-User-Id` 调试头模拟，在「我的」里切数字 |
+| 登录 | 有 `/login` 演示登录页（选择一个账号写入会话）；后端仍未接密码校验与 JWT，请求靠 `X-User-Id` 头，登录态只存在内存里，刷新回到游客 |
 | 音频播放 | 只有播放计数，没接音频文件，需要 `expo-audio` + 真实音频源 |
 | 转发 | 后端无转发接口，点击仅提示 |
 | 亮色主题 | 现在是纯暗色，Web 的亮色变量还没搬 |

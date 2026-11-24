@@ -1,4 +1,7 @@
+import { router } from 'expo-router';
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+
+import { useSession } from '@/lib/session';
 
 export type ComposerMode = 'post' | 'upload';
 export type ComposerPreset = { channel?: string; tag?: string };
@@ -27,15 +30,22 @@ const ComposerContext = createContext<ComposerContextValue>({
 /** 全局发帖/上传弹窗的状态源，挂一次即可，所有入口靠 openComposer 唤起 */
 export function ComposerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ComposerState>(initial);
+  const { userId } = useSession();
 
   const value = useMemo<ComposerContextValue>(
     () => ({
       ...state,
-      openComposer: (mode = 'post', preset = {}) =>
-        setState((s) => ({ open: true, mode, preset, seq: s.seq + 1 })),
+      /** 未登录时先跳登录页，不打开弹窗（发帖/上传都需要身份） */
+      openComposer: (mode = 'post', preset = {}) => {
+        if (userId == null) {
+          router.push('/login');
+          return;
+        }
+        setState((s) => ({ open: true, mode, preset, seq: s.seq + 1 }));
+      },
       closeComposer: () => setState((s) => ({ ...s, open: false })),
     }),
-    [state],
+    [state, userId],
   );
 
   return <ComposerContext.Provider value={value}>{children}</ComposerContext.Provider>;

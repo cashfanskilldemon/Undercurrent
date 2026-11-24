@@ -30,9 +30,12 @@ const RING_SIZE = 70;
 const RING_AVATAR = 56;
 const RING_STROKE = 3;
 
+/** 渐变 id 必须每次挂载都唯一：重挂载后复用旧 id 会让 react-native-svg 解析到已卸载的 defs（圆环不上色） */
+let ringSeq = 0;
+
 /** Instagram 式「日常动态」头像：彩色渐变圆环 + 内圈留一圈底色间隙 */
-function StoryRing({ id, name, hue }: { id: number; name: string; hue: number }) {
-  const gid = `story-grad-${id}`;
+function StoryRing({ name, hue }: { name: string; hue: number }) {
+  const [gid] = useState(() => `uc-ring-${++ringSeq}`);
   const r = (RING_SIZE - RING_STROKE) / 2;
   return (
     <View style={styles.storyRingWrap}>
@@ -154,7 +157,7 @@ export default function HomeScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stories}>
                   {suggested.data.map((u) => (
                     <Pressable key={u.id} onPress={() => router.push('/discover')} style={styles.story}>
-                      <StoryRing id={u.id} name={u.name} hue={u.hue} />
+                      <StoryRing name={u.name} hue={u.hue} />
                       <Text style={styles.storyName} numberOfLines={1}>{u.name}</Text>
                     </Pressable>
                   ))}

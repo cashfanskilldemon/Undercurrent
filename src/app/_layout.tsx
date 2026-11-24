@@ -16,8 +16,8 @@ import { SessionContext } from '@/lib/session';
 import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
 
 export default function RootLayout() {
-  // 未接登录前用数字模拟当前用户，切换后整棵树按新身份重新拉数据
-  const [userId, setUserId] = useState<number>(2);
+  // 登录态：null = 游客。未接真实鉴权，登录页选一个演示账号即写入 userId
+  const [userId, setUserId] = useState<number | null>(null);
 
   // 在子组件发请求前先把身份写进 api 模块（渲染期赋值，静态副作用，无状态变更）
   setCurrentUserId(userId);
@@ -49,7 +49,7 @@ export default function RootLayout() {
           <View style={[styles.centerArea, centerOffset > 0 && { paddingLeft: centerOffset }]}>
             <View style={[styles.center, wide && styles.centerWide]}>
               <Stack
-                key={userId}
+                key={userId ?? 'guest'}
                 screenOptions={{
                   headerShown: false,
                   contentStyle: { backgroundColor: colors.background },

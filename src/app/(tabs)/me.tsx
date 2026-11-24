@@ -1,3 +1,5 @@
+import { useRouter } from 'expo-router';
+import { LogIn } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,10 +11,34 @@ import { useBreakpoint } from '@/lib/use-breakpoint';
 
 export default function MeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { wide } = useBreakpoint();
   const { userId, setUserId } = useSession();
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+
+  // 未登录：这一页只给登录入口，调试身份等信息留给登录后的自己
+  if (userId == null) {
+    return (
+      <View style={styles.screen}>
+        <View style={[styles.header, { paddingTop: wide ? 20 : insets.top + 10 }]}>
+          <Text style={styles.title}>我的</Text>
+        </View>
+        <View style={styles.guest}>
+          <Text style={styles.guestTitle}>还没有登录</Text>
+          <Text style={styles.guestHint}>
+            登录后可以发帖、上传作品、点赞收藏，并收到回复和关注通知。
+          </Text>
+          <Pressable
+            onPress={() => router.push('/login')}
+            style={({ pressed }) => [styles.loginBtn, pressed && styles.pressed]}>
+            <LogIn size={16} color={colors.primaryForeground} />
+            <Text style={styles.loginText}>登录 / 注册</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   const check = async () => {
     setChecking(true);
@@ -38,9 +64,9 @@ export default function MeScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>调试身份</Text>
+        <Text style={styles.sectionLabel}>当前身份</Text>
         <Text style={styles.sectionHint}>
-          登录还没接，先用数字模拟。后端从请求头 X-User-Id 取当前用户，切换后点赞归属会变。
+          演示环境用数字模拟登录。后端从请求头 X-User-Id 取当前用户，切换后点赞、通知归属都会变。
         </Text>
         <View style={styles.stepper}>
           <Pressable
@@ -76,6 +102,17 @@ export default function MeScreen() {
           真机调试要把地址换成电脑的局域网 IP，在项目根目录建 .env 写
           {'\n'}EXPO_PUBLIC_API_BASE=http://192.168.x.x:8080
         </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Pressable
+          onPress={() => {
+            setUserId(null);
+            router.replace('/home');
+          }}
+          style={({ pressed }) => [styles.logoutBtn, pressed && styles.pressed]}>
+          <Text style={styles.logoutText}>退出登录</Text>
+        </Pressable>
       </View>
 
       <Text style={styles.footer}>Undercurrent · 0.1.0 · Expo SDK 58</Text>
@@ -133,4 +170,31 @@ const styles = StyleSheet.create({
   },
   checkText: { ...type.label, color: colors.primaryForeground, fontWeight: '600' },
   footer: { ...type.caption, color: colors.mutedForeground, textAlign: 'center', marginTop: space.xl },
+  /** 未登录视图 */
+  guest: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, gap: 10 },
+  guestTitle: { ...type.title, color: colors.foreground, fontSize: 17 },
+  guestHint: { ...type.small, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20, maxWidth: 320 },
+  loginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: space.sm,
+    height: 40,
+    paddingHorizontal: 22,
+    borderRadius: radius.full,
+    backgroundColor: colors.primary,
+  },
+  loginText: { fontSize: 14, fontWeight: '700', color: colors.primaryForeground },
+  logoutBtn: {
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    height: 34,
+    paddingHorizontal: 16,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: { ...type.label, color: colors.foreground },
 });

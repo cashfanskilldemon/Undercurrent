@@ -19,6 +19,7 @@ import { relativeTime } from '@/lib/format';
 import type { NotificationItem, NotificationPage } from '@/lib/types';
 import { useBreakpoint } from '@/lib/use-breakpoint';
 import { useResource } from '@/lib/use-paged';
+import { useSession } from '@/lib/session';
 import { setUnreadCount } from '@/lib/unread';
 
 const ICONS = {
@@ -32,11 +33,17 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { wide } = useBreakpoint();
-  const feed = useResource<NotificationPage>('/api/notifications?size=50');
+  const { userId } = useSession();
+  // 未登录不请求（后端会返回 401），直接给登录引导
+  const feed = useResource<NotificationPage>(userId ? '/api/notifications?size=50' : null);
 
   useEffect(() => {
+    if (userId == null) {
+      setUnreadCount(0);
+      return;
+    }
     if (feed.data) setUnreadCount(feed.data.unreadCount);
-  }, [feed.data]);
+  }, [feed.data, userId]);
 
   const readAll = useCallback(async () => {
     try {
@@ -61,6 +68,25 @@ export default function NotificationsScreen() {
   }
 
   const items = feed.data?.list ?? [];
+
+  if (userId == null) {
+    return (
+      <View style={styles.screen}>
+        <View style={[styles.header, { paddingTop: wide ? 20 : insets.top + 10 }]}>
+          <Text style={styles.title}>通知</Text>
+        </View>
+        <View style={styles.guest}>
+          <Text style={styles.guestTitle}>登录后查看通知</Text>
+          <Text style={styles.guestHint}>回复、点赞、关注的提醒都发到这里。</Text>
+          <Pressable
+            onPress={() => router.push('/login')}
+            style={({ pressed }) => [styles.guestBtn, pressed && { opacity: 0.7 }]}>
+            <Text style={styles.guestBtnText}>去登录</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
@@ -153,4 +179,17 @@ const styles = StyleSheet.create({
   rowBody: { fontSize: 14, color: colors.foreground, lineHeight: 20 },
   rowTime: { fontSize: 12, color: colors.mutedForeground, marginTop: 4 },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
+  guest: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, gap: 8 },
+  guestTitle: { fontSize: 16, fontWeight: '600', color: colors.foreground },
+  guestHint: { fontSize: 13, color: colors.mutedForeground, textAlign: 'center' },
+  guestBtn: {
+    marginTop: space.sm,
+    height: 36,
+    paddingHorizontal: 22,
+    borderRadius: radius.full,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestBtnText: { fontSize: 13.5, fontWeight: '700', color: colors.primaryForeground },
 });
