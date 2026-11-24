@@ -128,19 +128,21 @@ src/
 后端新增表/接口见 `undercurrent-api/src/main/resources/db/schema.sql` 与 `migration-20261124.sql`：
 `notification` 表、`thread.image` 字段、`user_follow` 假数据，以及 `/api/notifications`、`/api/users/{id}/follow`、`/api/search`、`POST /api/tracks`、`GET /api/threads?following=true`。
 
-### 登录与游客态
+### 登录与门禁
 
-会话由 `lib/session.ts` + `_layout.tsx` 里的 `userId` 管理，**默认 `null` 即游客**：
+`lib/session.ts` 存 `userId`，`lib/auth.ts` 负责 token 持久化（Web 用 `localStorage` 的 `undercurrent.auth`）：
 
-| 位置 | 未登录 | 已登录 |
-|---|---|---|
-| 左导航底部 | 显示「登录」，点击进 `/login` | 显示「我的」，点击进 `/me` |
-| 发帖 / 上传 | 先跳 `/login`（`ComposerProvider` 里统一拦截） | 打开弹窗 |
-| 通知页 | 登录引导，不请求接口 | 正常拉取，未读数写进左导航角标 |
-| 我的页 | 只有登录入口 | 身份信息、后端连通性、退出登录 |
+| 状态 | 行为 |
+|---|---|
+| 没有 token | 除了 `/login` 之外的所有路由都会被 `_layout.tsx` 重定向到登录页，**看不到应用内部界面**（`<Redirect href="/login" />`） |
+| 有 token | 直接进应用；访问 `/login` 会被送回 `/home` |
+| 登录 | `POST /api/auth/login` → `signIn(token, userId)` 写入内存 + localStorage → 跳 `/home` |
+| 刷新页面 | 启动时 `restoreAuth()` 同步读回 token，不会闪回登录页 |
+| 退出 / token 失效 | `signOut()` 清 token 与本地记录，`userId` 置空，立刻回到登录页 |
 
-`/login` 是账号密码表单，提交到 `POST /api/auth/login`（服务端 BCrypt 校验），成功后拿到 **token** 存进 `lib/api.ts` 并在请求头带 `Authorization: Bearer <token>`，后端验签取用户；演示账号 `admin` / `cashfans03`。token 只存在内存（刷新回游客），接口返回 401 时自动清凭证并切回游客态。
+请求带 `Authorization: Bearer <token>`，后端验签取用户；任何接口返回 401 时 `api.ts` 会清凭证并通知布局层切回登录页。发帖、上传等入口仍保留一层拦截（`ComposerProvider`），未登录会先跳 `/login`。
 
+演示账号：`admin` / `cashfans03`。
 ## 五、已完成 / 未做
 
 **能用**：首页推荐/关注流、发现聚合搜索、通知列表与已读、发帖与上传作品（真实落库）、帖子流（分页 + 下拉刷新 + 触底加载）、频道筛选、作品列表与排序、播放计数、插件分类与网格、帖子详情与回复展示、点赞 / 收藏（乐观更新，失败回滚）、系统分享、宽屏 Web 三栏自适应。
@@ -150,7 +152,7 @@ src/
 | 功能 | 缺什么 |
 |---|---|
 | 发回复 | 后端没有 `POST /api/threads/{id}/replies`，底部输入框是占位 |
-| 登录 | 账号密码 + BCrypt + HMAC 签名 token 已接；登录态只在内存，刷新回到游客；注册接口、找回密码未做 |
+| 登录 | 账号密码 + BCrypt + HMAC token 已接，未登录无法进入应用；**注册、找回密码、token 刷新未做** |
 | 音频播放 | 只有播放计数，没接音频文件，需要 `expo-audio` + 真实音频源 |
 | 转发 | 后端无转发接口，点击仅提示 |
 | 亮色主题 | 现在是纯暗色，Web 的亮色变量还没搬 |

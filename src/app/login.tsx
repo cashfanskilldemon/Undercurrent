@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, LogIn } from 'lucide-react-native';
+import { LogIn } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
 import { colors, radius, space, type } from '@/constants/theme';
-import { api, setAuthToken } from '@/lib/api';
+import { api } from '@/lib/api';
+import { signIn } from '@/lib/auth';
 import { useSession } from '@/lib/session';
 import type { LoginResult } from '@/lib/types';
 
@@ -47,7 +48,7 @@ export default function LoginScreen() {
         account: account.trim(),
         password,
       });
-      setAuthToken(result.token);
+      signIn(result.token, result.user.id, result.user.handle);
       setUserId(result.user.id);
       router.replace('/home');
     } catch (e) {
@@ -60,14 +61,6 @@ export default function LoginScreen() {
   return (
     <View style={styles.screen}>
       {showBackdrop ? <Backdrop /> : null}
-
-      <Pressable
-        onPress={() => router.replace('/home')}
-        hitSlop={10}
-        style={[styles.backBtn, { top: insets.top + 16 }]}>
-        <ChevronLeft size={20} color={colors.mutedForeground} />
-        <Text style={styles.backText}>返回</Text>
-      </Pressable>
 
       <ScrollView
         contentContainerStyle={[
@@ -136,21 +129,9 @@ export default function LoginScreen() {
             )}
           </Pressable>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>或</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            onPress={() => router.replace('/home')}
-            style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}>
-            <Text style={styles.ghostText}>先随便逛逛</Text>
-          </Pressable>
-
           <Text style={styles.footer}>
             演示账号：admin / cashfans03{'\n'}
-            登录态只存在本地内存，刷新页面会恢复为游客
+            未登录时只能停留在本页，登录后自动进入首页
           </Text>
         </View>
       </ScrollView>
@@ -188,17 +169,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     opacity: 0.04,
   },
-  backBtn: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingVertical: 6,
-    paddingRight: 8,
-  },
-  backText: { ...type.small, color: colors.mutedForeground },
   scroll: {
     flexGrow: 1,
     alignItems: 'center',
@@ -242,24 +212,6 @@ const styles = StyleSheet.create({
   submitDisabled: { opacity: 0.4 },
   pressed: { opacity: 0.8 },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.primaryForeground },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: space.lg,
-    marginBottom: space.lg,
-  },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
-  dividerText: { ...type.caption, color: colors.mutedForeground },
-  ghost: {
-    height: 46,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ghostText: { fontSize: 14.5, fontWeight: '600', color: colors.foreground },
   footer: {
     ...type.caption,
     color: colors.mutedForeground,

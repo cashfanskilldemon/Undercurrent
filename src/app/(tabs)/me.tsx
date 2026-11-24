@@ -4,16 +4,22 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { API_BASE, api, setAuthToken } from '@/lib/api';
+import { Avatar } from '@/components/avatar';
+import { API_BASE, api } from '@/lib/api';
+import { signOut } from '@/lib/auth';
 import { useSession } from '@/lib/session';
 import { colors, radius, space, type } from '@/constants/theme';
 import { useBreakpoint } from '@/lib/use-breakpoint';
+import { formatCount } from '@/lib/format';
+import { useResource } from '@/lib/use-paged';
+import type { UserProfile } from '@/lib/types';
 
 export default function MeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { wide } = useBreakpoint();
   const { userId, setUserId } = useSession();
+  const profile = useResource<UserProfile>(userId == null ? null : `/api/users/${userId}`);
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -64,24 +70,28 @@ export default function MeScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>当前身份</Text>
-        <Text style={styles.sectionHint}>
-          演示环境用数字模拟登录。后端从请求头 X-User-Id 取当前用户，切换后点赞、通知归属都会变。
-        </Text>
-        <View style={styles.stepper}>
-          <Pressable
-            onPress={() => setUserId(Math.max(1, userId - 1))}
-            style={({ pressed }) => [styles.stepBtn, pressed && styles.pressed]}>
-            <Text style={styles.stepText}>−</Text>
-          </Pressable>
-          <Text style={styles.stepValue}>用户 #{userId}</Text>
-          <Pressable
-            onPress={() => setUserId(Math.min(10, userId + 1))}
-            style={({ pressed }) => [styles.stepBtn, pressed && styles.pressed]}>
-            <Text style={styles.stepText}>＋</Text>
-          </Pressable>
+        <View style={styles.profileRow}>
+          <Avatar name={profile.data?.name ?? '我'} hue={profile.data?.hue ?? 122} size={52} />
+          <View style={styles.profileText}>
+            <View style={styles.nameRow}>
+              <Text style={styles.profileName} numberOfLines={1}>
+                {profile.data?.name ?? `用户 #${userId}`}
+              </Text>
+              {profile.data?.role ? <Text style={styles.role}>{profile.data.role}</Text> : null}
+            </View>
+            {profile.data ? (
+              <Text style={styles.profileMeta} numberOfLines={1}>
+                @{profile.data.handle}
+                {profile.data.followers != null
+                  ? ` · ${formatCount(profile.data.followers)} 位粉丝`
+                  : ''}
+              </Text>
+            ) : null}
+          </View>
         </View>
-        <Text style={styles.sectionHint}>种子数据里有 10 个用户（1–10），2 号是「九号线」。</Text>
+        <Text style={styles.sectionHint}>
+          当前身份来自登录 token（后端从 Authorization 解析），换账号请先退出登录。
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -107,7 +117,7 @@ export default function MeScreen() {
       <View style={styles.section}>
         <Pressable
           onPress={() => {
-            setAuthToken(null);
+            signOut();
             setUserId(null);
             router.replace('/home');
           }}
@@ -156,6 +166,20 @@ const styles = StyleSheet.create({
   stepText: { ...type.title, color: colors.foreground },
   stepValue: { ...type.title, color: colors.primary, minWidth: 78 },
   pressed: { opacity: 0.6 },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginBottom: 6 },
+  profileText: { flex: 1, gap: 3 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  profileName: { ...type.title, color: colors.foreground },
+  role: {
+    ...type.caption,
+    color: colors.mutedForeground,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.sm,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  profileMeta: { ...type.small, color: colors.mutedForeground },
   row: { flexDirection: 'row', gap: space.md },
   rowLabel: { ...type.small, color: colors.mutedForeground, width: 42 },
   rowValue: { ...type.small, color: colors.foreground, flex: 1 },

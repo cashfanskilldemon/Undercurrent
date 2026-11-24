@@ -1,6 +1,6 @@
 import '@/global.css';
 
-import { Stack, usePathname } from 'expo-router';
+import { Redirect, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -10,14 +10,18 @@ import { ComposerDialog } from '@/components/composer-dialog';
 import { RightRail } from '@/components/right-rail';
 import { SideNav } from '@/components/side-nav';
 import { colors } from '@/constants/theme';
-import { setAuthToken, setCurrentUserId, setUnauthorizedHandler } from '@/lib/api';
+import { setCurrentUserId, setUnauthorizedHandler } from '@/lib/api';
+import { restoreAuth, signOut } from '@/lib/auth';
 import { ComposerProvider } from '@/lib/composer';
 import { SessionContext } from '@/lib/session';
 import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
 
 export default function RootLayout() {
-  // 登录态：null = 游客。未接真实鉴权，登录页选一个演示账号即写入 userId
-  const [userId, setUserId] = useState<number | null>(null);
+  // 启动时同步读回上次登录态（Web 存在 localStorage），避免刷新后闪一下登录页
+  const [restored] = useState(() => restoreAuth());
+
+  // 登录态：null = 未登录，此时只能停留在 /login
+  const [userId, setUserId] = useState<number | null>(restored?.userId ?? null);
 
   // 在子组件发请求前先把身份写进 api 模块（渲染期赋值，静态副作用，无状态变更）
   setCurrentUserId(userId);
@@ -25,7 +29,7 @@ export default function RootLayout() {
   // token 失效时后端返回 401，这里统一把界面切回游客态
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      setAuthToken(null);
+      signOut();
       setUserId(null);
     });
     return () => setUnauthorizedHandler(null);
@@ -37,6 +41,14 @@ export default function RootLayout() {
   // 登录页要整屏独占：不显示左导航 / 右栏，也不限制中列宽度
   const pathname = usePathname();
   const bare = pathname === '/login';
+
+  // 没登录只能待在登录页；已登录就不用再进登录页
+  if (userId == null && !bare) {
+    return <Redirect href="/login" />;
+  }
+  if (userId != null && bare) {
+    return <Redirect href="/home" />;
+  }
 
   /**
    * 中列要相对「整个视口」居中（对齐 Threads），但左右两侧宽度不对称
