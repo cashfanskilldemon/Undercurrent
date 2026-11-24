@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { UserPlus } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthShell } from '@/components/auth-shell';
@@ -8,14 +8,15 @@ import { colors, radius, space, type } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { signIn } from '@/lib/auth';
 import { useSession } from '@/lib/session';
-import type { LoginResult } from '@/lib/types';
+import type { LoginResult, SmsCodeResult } from '@/lib/types';
 
 type Mode = 'phone' | 'account';
 
 const PHONE_RE = /^1[3-9]\d{9}$/;
 const ACCOUNT_RE = /^[a-zA-Z0-9_.]{3,20}$/;
+const RESEND_SECONDS = 60;
 
-/** 注册页：手机号或账号两种方式，成功后直接登录进首页 */
+/** 注册页：手机号（带短信验证码）或账号两种方式，成功后直接登录进首页 */
 export default function RegisterScreen() {
   const router = useRouter();
   const { setUserId } = useSession();
@@ -23,16 +24,46 @@ export default function RegisterScreen() {
   const [mode, setMode] = useState<Mode>('phone');
   const [account, setAccount] = useState('');
   const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const idOk = mode === 'phone' ? PHONE_RE.test(phone.trim()) : ACCOUNT_RE.test(account.trim());
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const phoneOk = PHONE_RE.test(phone.trim());
+  const idOk = mode === 'phone' ? phoneOk : ACCOUNT_RE.test(account.trim());
+  const codeOk = mode === 'phone' ? /^\d{6}$/.test(code) : true;
   const passwordOk = password.length >= 6;
   const sameOk = password.length > 0 && password === confirm;
-  const canSubmit = idOk && passwordOk && sameOk && !submitting;
+  const canSubmit = idOk && codeOk && passwordOk && sameOk && !submitting;
+
+  const sendCode = async () => {
+    if (!phoneOk || countdown > 0 || sending) return;
+    setSending(true);
+    setError(null);
+    try {
+      const res = await api.post<SmsCodeResult>('/api/auth/sms-code', {
+        phone: phone.trim(),
+        scene: 'register',
+      });
+      setCountdown(RESEND_SECONDS);
+      setDevCode(res.devCode ?? null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '发送失败，请重试');
+    } finally {
+      setSending(false);
+    }
+  };
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -40,7 +71,9 @@ export default function RegisterScreen() {
     setError(null);
     try {
       const result = await api.post<LoginResult>('/api/auth/register', {
-        ...(mode === 'phone' ? { phone: phone.trim() } : { account: account.trim() }),
+        ...(mode === 'phone'
+          ? { phone: phone.trim(), smsCode: code }
+          : { account: account.trim() }),
         password,
         nickname: nickname.trim() || undefined,
       });
@@ -55,7 +88,7 @@ export default function RegisterScreen() {
   };
 
   const hint = (() => {
-    if (mode === 'phone' && phone.length > 0 && !idOk) return '请输入 11 位手机号';
+    if (mode === 'phone' && phone.length > 0 && !phoneOk) return '请输入 11 位手机号';
     if (mode === 'account' && account.length > 0 && !idOk) return '账号需为 3-20 位字母、数字、下划线或点';
     if (password.length > 0 && !passwordOk) return '密码至少 6 位';
     if (confirm.length > 0 && !sameOk) return '两次输入的密码不一致';
@@ -65,6 +98,7 @@ export default function RegisterScreen() {
   const switchMode = (next: Mode) => {
     setMode(next);
     setError(null);
+    setDevCode(null);
   };
 
   return (
@@ -90,19 +124,53 @@ export default function RegisterScreen() {
       </View>
 
       {mode === 'phone' ? (
-        <TextInput
-          value={phone}
-          onChangeText={(v) => {
-            setPhone(v.replace(/\D/g, '').slice(0, 11));
-            setError(null);
-          }}
-          placeholder="手机号"
-          placeholderTextColor={colors.mutedForeground}
-          keyboardType="number-pad"
-          autoComplete="tel"
-          style={styles.input}
-          maxLength={11}
-        />
+        <>
+          <View style={styles.codeRow}>
+            <TextInput
+              value={phone}
+              onChangeText={(v) => {
+                setPhone(v.replace(/\D/g, '').slice(0, 11));
+                setError(null);
+              }}
+              placeholder="手机号"
+              placeholderTextColor={colors.mutedForeground}
+              keyboardType="number-pad"
+              autoComplete="tel"
+              style={[styles.input, styles.flex]}
+              maxLength={11}
+            />
+            <Pressable
+              onPress={sendCode}
+              disabled={!phoneOk || countdown > 0 || sending}
+              style={({ pressed }) => [
+                styles.codeBtn,
+                (!phoneOk || countdown > 0) && styles.codeBtnDisabled,
+                pressed && styles.pressed,
+              ]}>
+              {sending ? (
+                <ActivityIndicator size="small" color={colors.foreground} />
+              ) : (
+                <Text style={styles.codeBtnText}>
+                  {countdown > 0 ? `${countdown}s 后重发` : '获取验证码'}
+                </Text>
+              )}
+            </Pressable>
+          </View>
+
+          <TextInput
+            value={code}
+            onChangeText={(v) => {
+              setCode(v.replace(/\D/g, '').slice(0, 6));
+              setError(null);
+            }}
+            placeholder="6 位验证码"
+            placeholderTextColor={colors.mutedForeground}
+            keyboardType="number-pad"
+            maxLength={6}
+            style={[styles.input, styles.gap]}
+          />
+          {devCode ? <Text style={styles.devHint}>演示环境未接真实短信，验证码：{devCode}</Text> : null}
+        </>
       ) : (
         <TextInput
           value={account}
@@ -182,12 +250,6 @@ export default function RegisterScreen() {
           </>
         )}
       </Pressable>
-
-      {mode === 'phone' ? (
-        <Text style={styles.note}>
-          当前环境未接入短信服务，注册不校验验证码；接入后只需在这里加一步验证码输入。
-        </Text>
-      ) : null}
     </AuthShell>
   );
 }
@@ -220,7 +282,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.foreground,
   },
+  flex: { flex: 1 },
   gap: { marginTop: 10 },
+  codeRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  codeBtn: {
+    height: 50,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 108,
+  },
+  codeBtnDisabled: { opacity: 0.45 },
+  codeBtnText: { ...type.small, color: colors.foreground, fontWeight: '600' },
+  devHint: { ...type.caption, color: colors.primary, marginTop: 8 },
   hint: { ...type.small, color: colors.mutedForeground, marginTop: 10 },
   error: { ...type.small, color: colors.destructive, marginTop: 10 },
   submit: {
@@ -236,13 +313,6 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.8 },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.primaryForeground },
-  note: {
-    ...type.caption,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: space.md,
-  },
   backLogin: { alignSelf: 'center', padding: 6 },
   backLoginText: { ...type.small, color: colors.mutedForeground },
 });

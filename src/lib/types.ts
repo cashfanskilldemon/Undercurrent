@@ -157,6 +157,13 @@ export interface LoginResult {
   user: UserProfile;
 }
 
+/** POST /api/auth/sms-code 出参（devCode 仅开发环境返回） */
+export interface SmsCodeResult {
+  sent: boolean;
+  ttlMinutes: number;
+  devCode?: string;
+}
+
 /** /api/search 聚合结果 */
 export interface SearchResult {
   q: string;
