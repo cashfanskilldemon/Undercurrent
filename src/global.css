@@ -7,3 +7,58 @@
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
 }
+
+/* 品牌文字标用的圆体（Quicksand 600，随 public/fonts 一起发布，不依赖外网） */
+@font-face {
+  font-family: 'Undercurrent Rounded';
+  src: url('/fonts/quicksand-latin.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 隐藏 Web 端原生滚动条，保持 Instagram / Threads 式的干净界面 */
+html,
+body,
+#root {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/*
+ * 左侧导航胶囊：从左往右推出动画（CSS 驱动，绕开 RN Web SSR 的样式编译器）
+ * [data-testid='nav-pill']       折叠态 48px
+ * [data-testid='nav-pill-open']  展开态 196px（React 切换 testID 触发过渡）
+ */
+[data-testid='nav-pill'],
+[data-testid='nav-pill-open'] {
+  transition:
+    width 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+
+/* 文字跟着胶囊一起从左往右推出：位移 + 淡入，与胶囊同一条缓动曲线 */
+[data-testid='nav-label'] {
+  opacity: 0;
+  transform: translateX(-12px);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-testid='nav-pill-open'] [data-testid='nav-label'] {
+  opacity: 1;
+  transform: translateX(0);
+}
