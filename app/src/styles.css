@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+QingKe+HuangYou&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  /* 实色 token：给原生 CSS 用 */
+  --uc-bg: #0b0b0a;
+  --uc-surface: #121211;
+  --uc-surface-2: #191917;
+  --uc-fg: #f2f2ec;
+  --uc-muted: #9b9b90;
+  --uc-border: #34342f;
+  --uc-border-strong: #52524a;
+  --uc-primary: #c6ff3d;
+  --uc-primary-fg: #101408;
+  --uc-rust: #d1603d;
+  /* 通道 token：给 Tailwind 透明度修饰符（bg-primary/10 等）用 */
+  --uc-bg-rgb: 11 11 10;
+  --uc-surface-rgb: 18 18 17;
+  --uc-surface-2-rgb: 25 25 23;
+  --uc-fg-rgb: 242 242 236;
+  --uc-muted-rgb: 155 155 144;
+  --uc-primary-rgb: 198 255 61;
+  --uc-primary-fg-rgb: 16 20 8;
+  --uc-rust-rgb: 209 96 61;
+}
+
+html.light {
+  color-scheme: light;
+  --uc-bg: #f5f5f1;
+  --uc-surface: #ffffff;
+  --uc-surface-2: #eeeee7;
+  --uc-fg: #14140f;
+  --uc-muted: #6b6b60;
+  --uc-border: #d3d3c9;
+  --uc-border-strong: #a9a99e;
+  --uc-primary: #86c400;
+  --uc-primary-fg: #101408;
+  --uc-rust: #b44a2a;
+  --uc-bg-rgb: 245 245 241;
+  --uc-surface-rgb: 255 255 255;
+  --uc-surface-2-rgb: 238 238 231;
+  --uc-fg-rgb: 20 20 15;
+  --uc-muted-rgb: 107 107 96;
+  --uc-primary-rgb: 134 196 0;
+  --uc-primary-fg-rgb: 16 20 8;
+  --uc-rust-rgb: 180 74 42;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--uc-primary);
+    color: var(--uc-primary-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--uc-primary);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--uc-border-strong);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  .uc-card {
+    @apply rounded-2xl border border-border bg-surface;
+  }
+
+  .uc-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted transition-colors hover:border-border-strong hover:text-fg;
+  }
+
+  .uc-chip-active {
+    @apply border-primary/60 bg-primary/10 text-fg;
+  }
+
+  .uc-icon-btn {
+    @apply inline-grid h-9 w-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg;
+  }
+
+  .uc-nav-item {
+    @apply flex items-center gap-4 rounded-full px-3 py-2.5 text-[1.05rem] text-fg transition-colors hover:bg-surface-2;
+  }
+
+  .uc-nav-item-active {
+    @apply font-bold;
+  }
+
+  .uc-tab {
+    @apply relative flex-1 px-4 py-3 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-fg;
+  }
+
+  .uc-tab-active {
+    @apply font-bold text-fg;
+  }
+
+  .uc-scroll-x {
+    @apply flex gap-3 overflow-x-auto pb-1;
+    scrollbar-width: none;
+  }
+
+  .uc-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Ins 式头像渐变描边 */
+  .uc-story-ring {
+    background: conic-gradient(
+      from 210deg,
+      var(--uc-primary),
+      var(--uc-rust),
+      #8a63ff,
+      var(--uc-primary)
+    );
+  }
+
+  .uc-line {
+    @apply border-b border-border;
+  }
+
+  .uc-glass {
+    background: color-mix(in oklab, var(--uc-bg) 82%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .uc-cover-img {
+    @apply h-full w-full object-cover transition-transform duration-500;
+  }
+
+  .group:hover .uc-cover-img {
+    transform: scale(1.04);
+  }
+
+  .uc-link {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+}

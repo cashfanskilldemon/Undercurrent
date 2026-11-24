@@ -1,0 +1,954 @@
+{
+  "genres": [
+    "Boom Bap",
+    "Trap",
+    "Phonk",
+    "Drill",
+    "UK Bass",
+    "Dub",
+    "Lo-fi",
+    "Breakcore"
+  ],
+  "channels": [
+    "全部",
+    "作品反馈",
+    "混音母带",
+    "采样与版权",
+    "器材",
+    "现场演出",
+    "闲聊"
+  ],
+  "categories": [
+    "合成器",
+    "效果器",
+    "鼓机",
+    "采样包",
+    "预设包"
+  ],
+  "artists": [
+    {
+      "id": "a1",
+      "name": "阿鬼",
+      "handle": "ghostwire",
+      "city": "成都",
+      "role": "音乐人",
+      "hue": 122,
+      "followers": 18432,
+      "verified": true
+    },
+    {
+      "id": "a2",
+      "name": "九号线",
+      "handle": "line9",
+      "city": "上海",
+      "role": "制作人",
+      "hue": 42,
+      "followers": 9217,
+      "verified": true
+    },
+    {
+      "id": "a3",
+      "name": "灰烬",
+      "handle": "ashe.mp3",
+      "city": "重庆",
+      "role": "音乐人",
+      "hue": 15,
+      "followers": 26105
+    },
+    {
+      "id": "a4",
+      "name": "月台少年",
+      "handle": "platformkid",
+      "city": "北京",
+      "role": "制作人",
+      "hue": 220,
+      "followers": 4388
+    },
+    {
+      "id": "a5",
+      "name": "低压槽",
+      "handle": "lopressure",
+      "city": "广州",
+      "role": "音乐人",
+      "hue": 160,
+      "followers": 7741
+    },
+    {
+      "id": "a6",
+      "name": "夜班404",
+      "handle": "nightshift404",
+      "city": "杭州",
+      "role": "音乐人",
+      "hue": 290,
+      "followers": 12960
+    },
+    {
+      "id": "a7",
+      "name": "老焊工",
+      "handle": "solderdad",
+      "city": "深圳",
+      "role": "插件作者",
+      "hue": 70,
+      "followers": 3172,
+      "verified": true
+    },
+    {
+      "id": "a8",
+      "name": "磁带回收站",
+      "handle": "tapebin",
+      "city": "西安",
+      "role": "插件作者",
+      "hue": 30,
+      "followers": 5604
+    },
+    {
+      "id": "a9",
+      "name": "小葱拌豆腐",
+      "handle": "scallion",
+      "city": "长沙",
+      "role": "听众",
+      "hue": 100,
+      "followers": 211
+    },
+    {
+      "id": "a10",
+      "name": "DJ 二号口",
+      "handle": "exit_two",
+      "city": "武汉",
+      "role": "听众",
+      "hue": 200,
+      "followers": 893
+    }
+  ],
+  "tracks": [
+    {
+      "id": "t1",
+      "title": "地铁末班",
+      "artistId": "a1",
+      "genre": "Boom Bap",
+      "bpm": 88,
+      "musicalKey": "F 小调",
+      "duration": 207,
+      "plays": 48213,
+      "likes": 3127,
+      "comments": 214,
+      "cover": "cover-1.png",
+      "released": "3 天前",
+      "blurb": "录在二号线最后一班车上的环境声，鼓是 SP-404 里切的老唱片。",
+      "tags": [
+        "采样",
+        "SP-404",
+        "叙事"
+      ],
+      "spec": {
+        "bpm": 88,
+        "swing": 0.16,
+        "kick": "x.....x...x.....",
+        "snare": "....x.......x...",
+        "hat": "x.x.x.x.x.x.x.xx",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          -2,
+          null,
+          null,
+          null,
+          3,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "root": 41,
+        "bassWave": "triangle",
+        "chord": [
+          0,
+          3,
+          7,
+          10
+        ]
+      }
+    },
+    {
+      "id": "t2",
+      "title": "PAD 7",
+      "artistId": "a2",
+      "genre": "UK Bass",
+      "bpm": 132,
+      "musicalKey": "G 小调",
+      "duration": 244,
+      "plays": 21904,
+      "likes": 1688,
+      "comments": 97,
+      "cover": "cover-2.png",
+      "released": "1 周前",
+      "blurb": "一整首只用 MPC 第七个垫子的声音，做成了两步车库。",
+      "tags": [
+        "2-step",
+        "MPC",
+        "极简"
+      ],
+      "spec": {
+        "bpm": 132,
+        "swing": 0.22,
+        "kick": "x.........x.....",
+        "snare": "....x.......x...",
+        "hat": "..x...x...x...xx",
+        "bass": [
+          0,
+          null,
+          null,
+          0,
+          null,
+          null,
+          5,
+          null,
+          null,
+          null,
+          3,
+          null,
+          7,
+          null,
+          null,
+          null
+        ],
+        "root": 43,
+        "bassWave": "sawtooth"
+      }
+    },
+    {
+      "id": "t3",
+      "title": "雾都漂移",
+      "artistId": "a3",
+      "genre": "Phonk",
+      "bpm": 140,
+      "musicalKey": "C# 小调",
+      "duration": 168,
+      "plays": 96077,
+      "likes": 8840,
+      "comments": 532,
+      "cover": "cover-3.png",
+      "released": "2 周前",
+      "blurb": "牛铃换成了重庆轻轨报站声。808 开到失真，开车别听。",
+      "tags": [
+        "808",
+        "牛铃",
+        "失真"
+      ],
+      "spec": {
+        "bpm": 140,
+        "swing": 0,
+        "kick": "x.....x.x.......",
+        "snare": "....x.......x...",
+        "hat": "xxxxxxxxxxxxxxxx",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0,
+          null,
+          3,
+          null,
+          null,
+          null,
+          null,
+          null,
+          -2,
+          null
+        ],
+        "root": 37,
+        "bassWave": "sine",
+        "long808": true
+      }
+    },
+    {
+      "id": "t4",
+      "title": "十七层",
+      "artistId": "a6",
+      "genre": "Drill",
+      "bpm": 142,
+      "musicalKey": "A 小调",
+      "duration": 191,
+      "plays": 33580,
+      "likes": 2401,
+      "comments": 158,
+      "cover": "cover-4.png",
+      "released": "5 天前",
+      "blurb": "楼里只有一扇窗亮着，是我在剪 hi-hat。",
+      "tags": [
+        "滑音 808",
+        "夜晚"
+      ],
+      "spec": {
+        "bpm": 142,
+        "swing": 0,
+        "kick": "x.......x.x.....",
+        "snare": "......x.......x.",
+        "hat": "x.xx.x.xx.x.xxx.",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          3,
+          null,
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "root": 33,
+        "bassWave": "sine",
+        "long808": true
+      }
+    },
+    {
+      "id": "t5",
+      "title": "跳线打结",
+      "artistId": "a5",
+      "genre": "Dub",
+      "bpm": 72,
+      "musicalKey": "E 小调",
+      "duration": 312,
+      "plays": 12866,
+      "likes": 1032,
+      "comments": 61,
+      "cover": "cover-5.png",
+      "released": "3 周前",
+      "blurb": "模块合成器一条跳线没拔就录了，延迟反馈全是意外。",
+      "tags": [
+        "模块",
+        "延迟",
+        "重低音"
+      ],
+      "spec": {
+        "bpm": 72,
+        "swing": 0.08,
+        "kick": "x.......x.......",
+        "snare": "........x.......",
+        "hat": "..x...x...x...x.",
+        "bass": [
+          0,
+          null,
+          0,
+          null,
+          null,
+          null,
+          7,
+          null,
+          5,
+          null,
+          null,
+          null,
+          3,
+          null,
+          null,
+          null
+        ],
+        "root": 40,
+        "bassWave": "sine",
+        "chord": [
+          0,
+          7,
+          10,
+          15
+        ]
+      }
+    },
+    {
+      "id": "t6",
+      "title": "天台磁带",
+      "artistId": "a4",
+      "genre": "Lo-fi",
+      "bpm": 82,
+      "musicalKey": "D 大调",
+      "duration": 156,
+      "plays": 18350,
+      "likes": 1977,
+      "comments": 84,
+      "cover": "cover-6.png",
+      "released": "昨天",
+      "blurb": "从二手市场淘的磁带，绞带那段我没剪掉。",
+      "tags": [
+        "磁带",
+        "温暖",
+        "学习"
+      ],
+      "spec": {
+        "bpm": 82,
+        "swing": 0.16,
+        "kick": "x.....x...x.....",
+        "snare": "....x.......x...",
+        "hat": "x.x.x.x.x.x.x.xx",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          5,
+          null,
+          null,
+          null,
+          7,
+          null,
+          null,
+          null
+        ],
+        "root": 38,
+        "bassWave": "triangle",
+        "chord": [
+          0,
+          4,
+          7,
+          11
+        ]
+      }
+    },
+    {
+      "id": "t7",
+      "title": "断电重启",
+      "artistId": "a2",
+      "genre": "Breakcore",
+      "bpm": 174,
+      "musicalKey": "B 小调",
+      "duration": 139,
+      "plays": 7412,
+      "likes": 640,
+      "comments": 39,
+      "cover": "cover-2.png",
+      "released": "1 个月前",
+      "blurb": "Amen 切到第 400 刀的时候宿舍停电了。",
+      "tags": [
+        "Amen",
+        "碎拍"
+      ],
+      "spec": {
+        "bpm": 174,
+        "swing": 0,
+        "kick": "x.x.......x.x...",
+        "snare": "....x..x.x..x..x",
+        "hat": "x.x.x.x.x.x.x.x.",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          -2,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "root": 35,
+        "bassWave": "sawtooth"
+      }
+    },
+    {
+      "id": "t8",
+      "title": "火锅底料",
+      "artistId": "a3",
+      "genre": "Trap",
+      "bpm": 136,
+      "musicalKey": "D# 小调",
+      "duration": 201,
+      "plays": 61290,
+      "likes": 5263,
+      "comments": 377,
+      "cover": "cover-1.png",
+      "released": "1 个月前",
+      "blurb": "和阿鬼在九眼桥边录的，副歌是凌晨三点写的。",
+      "tags": [
+        "合作",
+        "方言"
+      ],
+      "spec": {
+        "bpm": 136,
+        "swing": 0,
+        "kick": "x.....x...x.....",
+        "snare": "........x.......",
+        "hat": "x.x.xxx.x.x.x.xx",
+        "bass": [
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0,
+          null,
+          null,
+          null,
+          5,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "root": 39,
+        "bassWave": "sine",
+        "long808": true
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "id": "p1",
+      "name": "Soot 煤灰",
+      "makerId": "a7",
+      "category": "效果器",
+      "price": 0,
+      "rating": 4.8,
+      "reviews": 412,
+      "downloads": 23871,
+      "formats": [
+        "VST3",
+        "AU",
+        "CLAP"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "1.4.2",
+      "size": "18.6 MB",
+      "hue": 122,
+      "knobs": 4,
+      "tagline": "把干净的鼓变脏的磁带饱和器",
+      "description": "模拟三种磁带机的饱和与抖动，附带 wow / flutter 和磁头噪声。专门为 boom bap 的鼓组调教过，推到底也不会糊。",
+      "updated": "6 天前"
+    },
+    {
+      "id": "p2",
+      "name": "Bolt 808",
+      "makerId": "a7",
+      "category": "鼓机",
+      "price": 68,
+      "rating": 4.6,
+      "reviews": 189,
+      "downloads": 6204,
+      "formats": [
+        "VST3",
+        "AU"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "2.0.0",
+      "size": "412 MB",
+      "hue": 42,
+      "knobs": 6,
+      "tagline": "会自动滑音的 808 低音鼓",
+      "description": "内置 64 个从真机采样的 808，支持按音阶自动 glide、失真分频和侧链。Drill 和 phonk 制作人最常用的一块。",
+      "updated": "2 周前"
+    },
+    {
+      "id": "p3",
+      "name": "旧货市场 Vol.3",
+      "makerId": "a8",
+      "category": "采样包",
+      "price": 39,
+      "rating": 4.9,
+      "reviews": 267,
+      "downloads": 9318,
+      "formats": [
+        "WAV"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "3.0",
+      "size": "1.2 GB",
+      "hue": 30,
+      "knobs": 0,
+      "tagline": "200 段已清版权的老唱片切片",
+      "description": "全部来自西安旧货市场淘到的黑胶和磁带，每一段都已经和版权方确认过可商用。按 BPM 和调性整理好了。",
+      "updated": "1 个月前"
+    },
+    {
+      "id": "p4",
+      "name": "Hum 嗡",
+      "makerId": "a7",
+      "category": "合成器",
+      "price": 128,
+      "rating": 4.5,
+      "reviews": 93,
+      "downloads": 2716,
+      "formats": [
+        "VST3",
+        "AU",
+        "AAX"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "1.1.0",
+      "size": "96 MB",
+      "hue": 200,
+      "knobs": 8,
+      "tagline": "专做低频的双振荡器合成器",
+      "description": "两个振荡器加一个只在 200Hz 以下工作的滤波器。没有花哨的预置，就是为了做 dub 和 UK bass 的 sub。",
+      "updated": "3 天前"
+    },
+    {
+      "id": "p5",
+      "name": "Echo Chamber 回声室",
+      "makerId": "a8",
+      "category": "效果器",
+      "price": 0,
+      "rating": 4.4,
+      "reviews": 158,
+      "downloads": 14092,
+      "formats": [
+        "VST3",
+        "AU"
+      ],
+      "os": [
+        "Win",
+        "Mac",
+        "Linux"
+      ],
+      "version": "0.9.7",
+      "size": "7.4 MB",
+      "hue": 160,
+      "knobs": 5,
+      "tagline": "模仿地下室混凝土墙的混响",
+      "description": "在真实地下室录的 12 组脉冲响应，附带一个能自激的弹簧延迟。开源，欢迎在讨论区提 bug。",
+      "updated": "昨天"
+    },
+    {
+      "id": "p6",
+      "name": "雾都 Phonk 预设",
+      "makerId": "a3",
+      "category": "预设包",
+      "price": 25,
+      "rating": 4.7,
+      "reviews": 341,
+      "downloads": 11507,
+      "formats": [
+        "Serum",
+        "Vital"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "1.0",
+      "size": "3.1 MB",
+      "hue": 15,
+      "knobs": 3,
+      "tagline": "《雾都漂移》里用到的 48 个音色",
+      "description": "灰烬本人整理的牛铃、失真 808、和那条很脏的主音。Serum 和 Vital 双版本。",
+      "updated": "2 周前"
+    },
+    {
+      "id": "p7",
+      "name": "Chop Shop 切片铺",
+      "makerId": "a8",
+      "category": "效果器",
+      "price": 45,
+      "rating": 4.3,
+      "reviews": 77,
+      "downloads": 3390,
+      "formats": [
+        "VST3",
+        "AU",
+        "CLAP"
+      ],
+      "os": [
+        "Win",
+        "Mac"
+      ],
+      "version": "1.2.1",
+      "size": "22 MB",
+      "hue": 290,
+      "knobs": 6,
+      "tagline": "实时切片和重排的 glitch 工具",
+      "description": "按拍子切片、倒放、跳帧，可以用 MIDI 触发。做 breakcore 和过门很顺手。",
+      "updated": "5 天前"
+    },
+    {
+      "id": "p8",
+      "name": "城中村 Field Recordings",
+      "makerId": "a5",
+      "category": "采样包",
+      "price": 0,
+      "rating": 4.8,
+      "reviews": 122,
+      "downloads": 7651,
+      "formats": [
+        "WAV"
+      ],
+      "os": [
+        "Win",
+        "Mac",
+        "Linux"
+      ],
+      "version": "1.0",
+      "size": "640 MB",
+      "hue": 85,
+      "knobs": 0,
+      "tagline": "广州城中村 90 段环境录音",
+      "description": "早茶店、摩托车、楼道里的电视声。CC0 授权，随便用。",
+      "updated": "3 周前"
+    }
+  ],
+  "threads": [
+    {
+      "id": "th1",
+      "authorId": "a1",
+      "channel": "作品反馈",
+      "time": "2 小时前",
+      "body": "新歌《地铁末班》上线了。鼓全是从一张 80 年代的磁带里切的，低频我总觉得有点糊，有懂混音的兄弟帮听一下 0:42 那段吗？",
+      "tags": [
+        "求反馈",
+        "boombap"
+      ],
+      "likes": 286,
+      "reposts": 41,
+      "attachment": {
+        "kind": "track",
+        "trackId": "t1"
+      },
+      "pinned": true,
+      "replies": [
+        {
+          "id": "r1",
+          "authorId": "a5",
+          "time": "1 小时前",
+          "body": "0:42 底鼓和贝斯在 60Hz 打架了，试试给贝斯做一个跟底鼓的侧链，或者底鼓往 50Hz 挪一点。",
+          "likes": 48
+        },
+        {
+          "id": "r2",
+          "authorId": "a4",
+          "time": "58 分钟前",
+          "body": "磁带的那层嘶声太好听了，别降噪。",
+          "likes": 31
+        },
+        {
+          "id": "r3",
+          "authorId": "a9",
+          "time": "22 分钟前",
+          "body": "通勤路上循环第五遍了",
+          "likes": 12
+        }
+      ]
+    },
+    {
+      "id": "th2",
+      "authorId": "a3",
+      "channel": "采样与版权",
+      "time": "4 小时前",
+      "body": "说个可能得罪人的观点：地下圈子用采样不清版权，等歌火了再被下架，最后吃亏的还是自己。我现在宁愿花钱买清过的采样包。大家都怎么处理的？",
+      "tags": [
+        "版权",
+        "采样"
+      ],
+      "likes": 512,
+      "reposts": 97,
+      "replies": [
+        {
+          "id": "r4",
+          "authorId": "a8",
+          "time": "3 小时前",
+          "body": "同意。我们做《旧货市场》系列就是因为被下架过两次，一段段去找版权方谈的。",
+          "likes": 88
+        },
+        {
+          "id": "r5",
+          "authorId": "a2",
+          "time": "3 小时前",
+          "body": "小样随便采，正式发行前一定要清。这是底线。",
+          "likes": 64
+        },
+        {
+          "id": "r6",
+          "authorId": "a10",
+          "time": "2 小时前",
+          "body": "能不能出一个版权清理的教程帖，置顶那种",
+          "likes": 27
+        }
+      ]
+    },
+    {
+      "id": "th3",
+      "authorId": "a7",
+      "channel": "器材",
+      "time": "6 小时前",
+      "body": "Soot 1.4.2 更新了：修了 Ableton 12 里自动化跳变的问题，新加了一个「破旧随身听」磁头。免费的，插件区直接下。",
+      "tags": [
+        "插件更新",
+        "免费"
+      ],
+      "likes": 194,
+      "reposts": 58,
+      "attachment": {
+        "kind": "plugin",
+        "pluginId": "p1"
+      },
+      "replies": [
+        {
+          "id": "r7",
+          "authorId": "a1",
+          "time": "5 小时前",
+          "body": "老焊工yyds，新磁头放在鼓总线上直接出味道。",
+          "likes": 22
+        }
+      ]
+    },
+    {
+      "id": "th4",
+      "authorId": "a6",
+      "channel": "现场演出",
+      "time": "昨天",
+      "body": "下周六杭州有一场地下室 showcase，五个本地 MC 加两个 beatmaker 现场切。场地只能塞 120 人，想来的在下面留城市，我统计一下要不要加场。",
+      "tags": [
+        "演出",
+        "杭州"
+      ],
+      "likes": 341,
+      "reposts": 120,
+      "replies": [
+        {
+          "id": "r8",
+          "authorId": "a10",
+          "time": "昨天",
+          "body": "武汉，坐高铁过去！",
+          "likes": 9
+        },
+        {
+          "id": "r9",
+          "authorId": "a9",
+          "time": "昨天",
+          "body": "长沙 +1，求加场",
+          "likes": 6
+        }
+      ]
+    },
+    {
+      "id": "th5",
+      "authorId": "a2",
+      "channel": "混音母带",
+      "time": "昨天",
+      "body": "UK bass 的 sub 到底该压到多少 LUFS？我把《PAD 7》推到 -8 之后在手机外放上完全听不到低音了，退回 -11 又觉得不够劲。",
+      "tags": [
+        "母带",
+        "LUFS"
+      ],
+      "likes": 127,
+      "reposts": 14,
+      "attachment": {
+        "kind": "track",
+        "trackId": "t2"
+      },
+      "replies": [
+        {
+          "id": "r10",
+          "authorId": "a5",
+          "time": "昨天",
+          "body": "手机外放本来就放不出 60Hz 以下，加一点 120Hz 左右的谐波失真让耳朵「脑补」出低音。",
+          "likes": 53
+        }
+      ]
+    },
+    {
+      "id": "th6",
+      "authorId": "a4",
+      "channel": "闲聊",
+      "time": "2 天前",
+      "body": "今天在潘家园收了一箱磁带，老板说是一个 90 年代电台主持人的私藏。里面有好多没见过的本地乐队，准备慢慢数字化，有兴趣的可以一起听。",
+      "tags": [
+        "磁带",
+        "挖碟"
+      ],
+      "likes": 89,
+      "reposts": 11,
+      "replies": []
+    },
+    {
+      "id": "th7",
+      "authorId": "a5",
+      "channel": "作品反馈",
+      "time": "3 天前",
+      "body": "尝试了一首 72 BPM 的 dub，全程没有量化，延迟反馈手动拧的。这种不完美大家能接受吗，还是听起来就是不专业？",
+      "tags": [
+        "dub",
+        "求反馈"
+      ],
+      "likes": 76,
+      "reposts": 6,
+      "attachment": {
+        "kind": "track",
+        "trackId": "t5"
+      },
+      "replies": [
+        {
+          "id": "r11",
+          "authorId": "a1",
+          "time": "3 天前",
+          "body": "地下要什么专业，这就是味道。",
+          "likes": 19
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "tag": "求反馈",
+      "posts": 1284
+    },
+    {
+      "tag": "boombap",
+      "posts": 962
+    },
+    {
+      "tag": "版权",
+      "posts": 517
+    },
+    {
+      "tag": "808",
+      "posts": 488
+    },
+    {
+      "tag": "插件更新",
+      "posts": 301
+    },
+    {
+      "tag": "演出",
+      "posts": 276
+    },
+    {
+      "tag": "磁带",
+      "posts": 193
+    }
+  ]
+}

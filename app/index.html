@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Undercurrent · 地下嘻哈 × 电子音乐</title>
+    <meta name="description" content="Undercurrent——地下嘻哈与电子音乐社区，试听作品、交换反馈、淘插件。" />
+    <meta name="theme-color" content="#0b0b0a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // 首屏前恢复主题，避免闪白/闪黑
+      try {
+        var t = localStorage.getItem('undercurrent:theme');
+        if (t === 'light') document.documentElement.classList.add('light');
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', t === 'light' ? '#f5f5f1' : '#0b0b0a');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
