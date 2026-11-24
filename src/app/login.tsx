@@ -14,9 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
 import { colors, radius, space, type } from '@/constants/theme';
-import { api } from '@/lib/api';
+import { api, setAuthToken } from '@/lib/api';
 import { useSession } from '@/lib/session';
-import type { UserProfile } from '@/lib/types';
+import type { LoginResult } from '@/lib/types';
 import { CENTER_MAX_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
 
 /**
@@ -41,11 +41,12 @@ export default function LoginScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      const profile = await api.post<UserProfile>('/api/auth/login', {
+      const result = await api.post<LoginResult>('/api/auth/login', {
         account: account.trim(),
         password,
       });
-      setUserId(profile.id);
+      setAuthToken(result.token);
+      setUserId(result.user.id);
       router.replace('/home');
     } catch (e) {
       setError(e instanceof Error ? e.message : '登录失败，请重试');

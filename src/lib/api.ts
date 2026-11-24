@@ -11,8 +11,29 @@ const fallback = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://lo
 
 export const API_BASE = (process.env.EXPO_PUBLIC_API_BASE ?? fallback).replace(/\/$/, '');
 
-/** 未接真实登录前用请求头模拟身份，与后端 X-User-Id 约定一致；null = 游客 */
+/**
+ * 登录凭证：内存保存，刷新即失效。
+ * 有 token 时请求带 Authorization: Bearer，后端以 token 为准，不再依赖 X-User-Id。
+ */
+let authToken: string | null = null;
+/** 兼容字段：没有 token 时才会带上（后端默认不信任该头，仅本地联调用） */
 let currentUserId: number | null = null;
+
+type UnauthorizedHandler = () => void;
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+export function getAuthToken() {
+  return authToken;
+}
+
+/** token 失效（401）时回调，用于把界面切回游客态 */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  onUnauthorized = handler;
+}
 
 export function setCurrentUserId(id: number | null) {
   currentUserId = id;
@@ -48,7 +69,8 @@ async function request<T>(path: string, init?: RequestInit, query?: Query): Prom
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-    ...(currentUserId ? { 'X-User-Id': String(currentUserId) } : {}),
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    ...(!authToken && currentUserId ? { 'X-User-Id': String(currentUserId) } : {}),
   };
 
   const controller = new AbortController();
@@ -79,6 +101,11 @@ async function request<T>(path: string, init?: RequestInit, query?: Query): Prom
     throw new ApiError(`响应格式异常（HTTP ${res.status}）`, res.status);
   }
   if (json.code !== 0) {
+    // token 过期 / 签名不对：清掉本地凭证并通知上层回到游客态
+    if (json.code === 401 && authToken) {
+      authToken = null;
+      onUnauthorized?.();
+    }
     throw new ApiError(json.message || '请求失败', json.code);
   }
   return json.data as T;

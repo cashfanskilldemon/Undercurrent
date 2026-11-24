@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { API_BASE, api } from '@/lib/api';
+import { API_BASE, api, setAuthToken } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { colors, radius, space, type } from '@/constants/theme';
 import { useBreakpoint } from '@/lib/use-breakpoint';
@@ -107,6 +107,7 @@ export default function MeScreen() {
       <View style={styles.section}>
         <Pressable
           onPress={() => {
+            setAuthToken(null);
             setUserId(null);
             router.replace('/home');
           }}

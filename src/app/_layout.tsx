@@ -2,7 +2,7 @@ import '@/global.css';
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -10,7 +10,7 @@ import { ComposerDialog } from '@/components/composer-dialog';
 import { RightRail } from '@/components/right-rail';
 import { SideNav } from '@/components/side-nav';
 import { colors } from '@/constants/theme';
-import { setCurrentUserId } from '@/lib/api';
+import { setAuthToken, setCurrentUserId, setUnauthorizedHandler } from '@/lib/api';
 import { ComposerProvider } from '@/lib/composer';
 import { SessionContext } from '@/lib/session';
 import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
@@ -21,6 +21,15 @@ export default function RootLayout() {
 
   // 在子组件发请求前先把身份写进 api 模块（渲染期赋值，静态副作用，无状态变更）
   setCurrentUserId(userId);
+
+  // token 失效时后端返回 401，这里统一把界面切回游客态
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setAuthToken(null);
+      setUserId(null);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   // 只在 Web 宽屏生效：≥768 左导航，≥1120 右栏；App 恒为单列
   const { wide, xl, width } = useBreakpoint();

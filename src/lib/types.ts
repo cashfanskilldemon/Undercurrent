@@ -150,6 +150,13 @@ export interface UserProfile extends UserBrief {
   threads?: number;
 }
 
+/** POST /api/auth/login 出参 */
+export interface LoginResult {
+  token: string;
+  expiresIn: number;
+  user: UserProfile;
+}
+
 /** /api/search 聚合结果 */
 export interface SearchResult {
   q: string;
