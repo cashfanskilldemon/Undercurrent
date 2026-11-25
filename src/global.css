@@ -58,6 +58,20 @@
   --uc-switch-thumb: #ffffff;
 }
 
+/* 推荐关注悬停卡片：与菜单一致的浮层阴影 */
+[data-testid='user-hover-card'] {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* 推荐关注的名字：悬停下划线 + 手型指针（参照 Threads） */
+[data-testid='person-name'] {
+  cursor: pointer;
+  width: fit-content;
+}
+[data-testid='person-name']:hover {
+  text-decoration: underline;
+}
+
 /* 浏览器自动填充：颜色跟随当前主题变量 */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
