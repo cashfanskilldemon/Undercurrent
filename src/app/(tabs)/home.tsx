@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Bell, ImagePlus, Music2, Search, Tags } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { Bell, ChevronLeft, ChevronRight, ImagePlus, Music2, Search, Tags } from 'lucide-react-native';
+import { useCallback, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -10,6 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
@@ -72,6 +73,28 @@ export default function HomeScreen() {
   const { openComposer } = useComposer();
   const unread = useUnreadCount();
   const [tab, setTab] = useState<FeedTab>('for-you');
+
+  // 日常动态横滑：记录滚动位置/视口与内容宽度，决定箭头显示与点击滚动量
+  const storiesRef = useRef<ScrollViewInstance>(null);
+  const [storyScroll, setStoryScroll] = useState({ x: 0, viewport: 0, content: 0 });
+
+  const onStoryScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+    setStoryScroll({ x: contentOffset.x, viewport: layoutMeasurement.width, content: contentSize.width });
+  }, []);
+  const onStoryLayout = useCallback((e: LayoutChangeEvent) => {
+    setStoryScroll((s) => ({ ...s, viewport: e.nativeEvent.layout.width }));
+  }, []);
+  const onStoryContentSize = useCallback((w: number) => {
+    setStoryScroll((s) => ({ ...s, content: w }));
+  }, []);
+  const canStoryLeft = storyScroll.x > 1;
+  const canStoryRight = storyScroll.viewport > 0 && storyScroll.x + storyScroll.viewport < storyScroll.content - 1;
+  const scrollStories = useCallback((dir: -1 | 1) => {
+    const { x, viewport } = storyScroll;
+    const step = Math.max(viewport * 0.8, 200);
+    storiesRef.current?.scrollTo({ x: Math.max(0, x + dir * step), animated: true });
+  }, [storyScroll]);
 
   const suggested = useResource<UserProfile[]>('/api/users/suggested?limit=8');
   const feed = usePaged<ThreadItem>('/api/threads', {
@@ -151,17 +174,49 @@ export default function HomeScreen() {
               </Pressable>
             </View>
 
-            {/* 日常动态：艺人头像条（Ins 式彩色圆环） */}
+            {/* 日常动态：艺人头像条（Ins 式彩色圆环），两侧有滚动箭头 */}
             {suggested.data && suggested.data.length > 0 && (
               <View style={styles.storiesBlock}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stories}>
-                  {suggested.data.map((u) => (
-                    <Pressable key={u.id} onPress={() => router.push('/discover')} style={styles.story}>
-                      <StoryRing name={u.name} hue={u.hue} />
-                      <Text style={styles.storyName} numberOfLines={1}>{u.name}</Text>
+                <View style={styles.storiesWrap} onLayout={onStoryLayout}>
+                  <ScrollView
+                    ref={storiesRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.stories}
+                    onScroll={onStoryScroll}
+                    onContentSizeChange={onStoryContentSize}
+                    scrollEventThrottle={16}
+                  >
+                    {suggested.data.map((u) => (
+                      <Pressable key={u.id} onPress={() => router.push('/discover')} style={styles.story}>
+                        <StoryRing name={u.name} hue={u.hue} />
+                        <Text style={styles.storyName} numberOfLines={1}>{u.name}</Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                  {canStoryLeft && (
+                    <Pressable
+                      onPress={() => scrollStories(-1)}
+                      style={[styles.storyArrow, styles.storyArrowLeft]}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="向左滚动日常动态"
+                    >
+                      <ChevronLeft size={16} color={colors.foreground} strokeWidth={2.4} />
                     </Pressable>
-                  ))}
-                </ScrollView>
+                  )}
+                  {canStoryRight && (
+                    <Pressable
+                      onPress={() => scrollStories(1)}
+                      style={[styles.storyArrow, styles.storyArrowRight]}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="向右滚动日常动态"
+                    >
+                      <ChevronRight size={16} color={colors.foreground} strokeWidth={2.4} />
+                    </Pressable>
+                  )}
+                </View>
               </View>
             )}
           </View>
@@ -207,7 +262,22 @@ const styles = StyleSheet.create({
   postBtnText: { fontSize: 13, fontWeight: '700', color: colors.primaryForeground },
   /** 日常动态条：不再有标题，直接跟在发帖框下面，横向可滚动 */
   storiesBlock: { marginTop: 12, marginBottom: 4 },
+  storiesWrap: { position: 'relative' },
   stories: { paddingHorizontal: space.lg },
+  storyArrow: {
+    position: 'absolute',
+    top: (RING_SIZE + 8) / 2 - 14,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(18,18,18,0.82)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storyArrowLeft: { left: 6 },
+  storyArrowRight: { right: 6 },
   story: { width: 80, alignItems: 'center', marginRight: 8 },
   storyRingWrap: { width: RING_SIZE, height: RING_SIZE, alignItems: 'center', justifyContent: 'center' },
   /** 内圈垫一层底色，让渐变环和头像之间留出 1px 呼吸位 */

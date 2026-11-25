@@ -6,17 +6,67 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+
+  /* 深色（默认）：与 theme.ts 的 fallback 一致 */
+  --uc-bg: #030303;
+  --uc-fg: #eeebe1;
+  --uc-strong: #ffffff;
+  --uc-card: #090909;
+  --uc-elevated: #121212;
+  --uc-accent: #161616;
+  --uc-input: #1b1b1b;
+  --uc-muted: #a09f94;
+  --uc-border: #242424;
+  --uc-border-strong: #4d4d4d;
+  --uc-primary: #c5e95c;
+  --uc-primary-fg: #13150b;
+  --uc-destructive: #dc5b37;
+  --uc-rust: #e07144;
+  --uc-menu-bg: #242424;
+  --uc-menu-border: #3a3a3a;
+  --uc-menu-pressed: #333333;
+  --uc-menu-divider: #3a3a3a;
+  --uc-menu-segment: #1a1a1a;
+  --uc-menu-selected: #3c3c3c;
+  --uc-switch-track: #4a4a4a;
+  --uc-switch-thumb: #ffffff;
 }
 
-/* 浏览器自动填充会把输入框刷成白底，这里强制保持暗色（与 theme.colors.input 一致） */
+/* 浅色：参照 Threads 浅色，白底 + 近黑字 + 保留酸性黄绿强调色 */
+:root[data-theme='light'] {
+  --uc-bg: #ffffff;
+  --uc-fg: #0a0a0a;
+  --uc-strong: #0a0a0a;
+  --uc-card: #ffffff;
+  --uc-elevated: #f5f5f5;
+  --uc-accent: #f0f0f0;
+  --uc-input: #f5f5f5;
+  --uc-muted: #737373;
+  --uc-border: #e6e6e6;
+  --uc-border-strong: #cfcfcf;
+  --uc-primary: #6f8f1d;
+  --uc-primary-fg: #ffffff;
+  --uc-destructive: #dc5b37;
+  --uc-rust: #c6613c;
+  --uc-menu-bg: #ffffff;
+  --uc-menu-border: #e5e5e5;
+  --uc-menu-pressed: #f0f0f0;
+  --uc-menu-divider: #e6e6e6;
+  --uc-menu-segment: #f5f5f5;
+  --uc-menu-selected: #e6e6e6;
+  --uc-switch-track: #cfcfcf;
+  --uc-switch-thumb: #ffffff;
+}
+
+/* 浏览器自动填充：颜色跟随当前主题变量 */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill {
-  -webkit-text-fill-color: #eeebe1;
-  -webkit-box-shadow: 0 0 0 1000px #1b1b1b inset;
-  box-shadow: 0 0 0 1000px #1b1b1b inset;
-  caret-color: #eeebe1;
+  -webkit-text-fill-color: var(--uc-fg);
+  -webkit-box-shadow: 0 0 0 1000px var(--uc-input) inset;
+  box-shadow: 0 0 0 1000px var(--uc-input) inset;
+  caret-color: var(--uc-fg);
   transition: background-color 9999s ease-in-out 0s;
 }
 
@@ -73,4 +123,88 @@ body::-webkit-scrollbar,
 [data-testid='nav-pill-open'] [data-testid='nav-label'] {
   opacity: 1;
   transform: translateX(0);
+}
+
+/*
+ * LOGO 旁菜单的横向滑动：transform/height 交给 CSS 过渡，走 GPU 合成。
+ * 用 Animated(useNativeDriver:false) 在 Web 上逐帧改 inline style 会卡顿。
+ */
+[data-testid='side-menu-pages'] {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+[data-testid='side-menu-panel'],
+[data-testid='side-menu-panel-closing'] {
+  transition:
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width, height, transform, opacity;
+  transform-origin: top left;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+/* 挂载即播放：从按钮处放大淡入的弹出效果 */
+[data-testid='side-menu-panel'] {
+  animation: side-menu-pop 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+/* 收起：缩小淡出，结束后组件才卸载（CLOSE_MS） */
+[data-testid='side-menu-panel-closing'] {
+  animation: side-menu-close 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+:root[data-theme='light'] [data-testid='side-menu-panel'],
+:root[data-theme='light'] [data-testid='side-menu-panel-closing'] {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 遮罩淡入淡出，跟随弹层；虽可点击关闭，但指针保持默认箭头而非手型 */
+[data-testid='side-menu-backdrop'],
+[data-testid='side-menu-backdrop-closing'] {
+  cursor: default;
+}
+[data-testid='side-menu-backdrop'] {
+  animation: side-menu-backdrop-in 180ms ease-out both;
+}
+[data-testid='side-menu-backdrop-closing'] {
+  animation: side-menu-backdrop-out 180ms ease-in both;
+}
+
+@keyframes side-menu-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes side-menu-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes side-menu-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes side-menu-close {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+}
+
+/* 减少动态效果的系统偏好：不做弹出/收起动画 */
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='side-menu-panel'],
+  [data-testid='side-menu-panel-closing'],
+  [data-testid='side-menu-backdrop'],
+  [data-testid='side-menu-backdrop-closing'] {
+    animation: none;
+  }
 }

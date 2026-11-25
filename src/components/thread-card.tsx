@@ -109,9 +109,10 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.card },
   main: { flex: 1, gap: 2 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  name: { ...type.title, maxWidth: 120 },
-  meta: { ...type.small, color: colors.mutedForeground },
-  dot: { ...type.small, color: colors.mutedForeground },
+  /** 名称：参照 X 的观感，白色半粗且比正文略大 */
+  name: { fontSize: 16, lineHeight: 21, fontWeight: '600', color: colors.strong, maxWidth: 160 },
+  meta: { fontSize: 13, lineHeight: 18, color: colors.mutedForeground },
+  dot: { fontSize: 13, lineHeight: 18, color: colors.mutedForeground },
   pin: {
     marginLeft: 'auto',
     paddingHorizontal: 6,
@@ -121,9 +122,10 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   pinText: { ...type.caption, color: colors.mutedForeground },
-  body: { ...type.body, color: colors.foreground, marginTop: 2 },
+  /** 正文：14px / 细体，行高收紧 */
+  body: { ...type.body, fontSize: 14, lineHeight: 20, fontWeight: '300', color: colors.strong, marginTop: 3 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 6 },
-  tag: { ...type.small, color: colors.primary },
+  tag: { fontSize: 13, lineHeight: 18, color: colors.primary },
   attach: {
     flexDirection: 'row',
     alignItems: 'center',

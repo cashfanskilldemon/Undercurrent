@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     paddingTop: 24,
     paddingBottom: 20,
-    paddingLeft: 20,
+    paddingLeft: 16,
     /** 右侧内边距更小，整栏视觉再往右贴一点 */
-    paddingRight: 10,
+    paddingRight: 8,
     backgroundColor: colors.background,
   },
   searchWrap: { position: 'relative', zIndex: 60, marginBottom: 20 },

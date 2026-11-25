@@ -1,40 +1,58 @@
 /**
- * 主题令牌：数值全部来自 Web 版 oklch 变量换算成 sRGB（RN 不支持 oklch）
+ * 主题令牌。Web 端用 CSS 变量（global.css 按 data-theme 切深/浅），原生端吃暗色 fallback。
+ * 数值来源：Web 版 oklch 变量换算成 sRGB（RN 不支持 oklch）。
  * Web 源：Undercurrent-web/public/index.html + assets/index-*.css
  */
+import { Platform } from 'react-native';
+
+const web = Platform.OS === 'web';
+/** Web 拿 var(--x, 暗色兜底)，原生拿暗色兜底 */
+const token = (name: string, fallback: string) =>
+  web ? `var(--uc-${name}, ${fallback})` : fallback;
 
 export const colors = {
-  /** oklch(10% 0 0) 中性黑 */
-  background: '#030303',
-  /** oklch(94% .014 95) 暖调米白 */
-  foreground: '#eeebe1',
-  /** oklch(14% 0 0) */
-  card: '#090909',
-  /** oklch(18% 0 0) */
-  elevated: '#121212',
-  /** oklch(20% 0 0) */
-  accent: '#161616',
-  /** oklch(22% 0 0) 输入框/按钮底 */
-  input: '#1b1b1b',
-  /** oklch(70% .016 100) */
-  mutedForeground: '#a09f94',
+  /** 中性黑 / 白 */
+  background: token('bg', '#030303'),
+  /** 暖调米白 / 近黑 */
+  foreground: token('fg', '#eeebe1'),
+  /** 强对比正文：深色纯白 / 浅色近黑 */
+  strong: token('strong', '#ffffff'),
+  /** 卡片底 */
+  card: token('card', '#090909'),
+  /** 抬升层 */
+  elevated: token('elevated', '#121212'),
+  /** 按钮/胶囊底 */
+  accent: token('accent', '#161616'),
+  /** 输入框底 */
+  input: token('input', '#1b1b1b'),
+  /** 次级文字 */
+  mutedForeground: token('muted', '#a09f94'),
 
-  /** 分隔线：比 Web 的 border(42%) 收敛，移动端 1px 太亮会显脏 */
-  border: '#242424',
-  /** 按钮/胶囊描边，对应 Web --border oklch(42%) */
-  borderStrong: '#4d4d4d',
+  /** 分隔线 */
+  border: token('border', '#242424'),
+  /** 按钮/胶囊描边 */
+  borderStrong: token('border-strong', '#4d4d4d'),
 
-  /** oklch(88% .17 122) 酸性黄绿，全站强调色 */
-  primary: '#c5e95c',
-  primaryForeground: '#13150b',
+  /** 酸性黄绿强调色 */
+  primary: token('primary', '#c5e95c'),
+  primaryForeground: token('primary-fg', '#13150b'),
 
-  /** oklch(63% .17 36) 点赞红 */
-  destructive: '#dc5b37',
-  /** oklch(67% .15 42) 铁锈色，次要强调 */
-  rust: '#e07144',
+  /** 点赞红 */
+  destructive: token('destructive', '#dc5b37'),
+  /** 铁锈色 */
+  rust: token('rust', '#e07144'),
+
+  /** 菜单弹层专用 */
+  menuBg: token('menu-bg', '#242424'),
+  menuBorder: token('menu-border', '#3a3a3a'),
+  menuPressed: token('menu-pressed', '#333333'),
+  menuDivider: token('menu-divider', '#3a3a3a'),
+  menuSegment: token('menu-segment', '#1a1a1a'),
+  menuSelected: token('menu-selected', '#3c3c3c'),
+  switchTrack: token('switch-track', '#4a4a4a'),
+  switchThumb: token('switch-thumb', '#ffffff'),
 } as const;
 
-/** Web 的 --radius 是 0.625rem = 10px */
 export const radius = {
   sm: 6,
   md: 8,
@@ -63,7 +81,7 @@ export const type = {
   num: { fontSize: 12.5, lineHeight: 18, fontWeight: '400' as const, fontVariant: ['tabular-nums'] as const },
 } as const;
 
-/** 互动图标统一 18px / 1.7 描边，与 Web 视觉一致 */
+/** 互动图标统一 18px / 1.7 描边 */
 export const icon = {
   size: 18,
   stroke: 1.7,

@@ -14,6 +14,7 @@ import { setCurrentUserId, setUnauthorizedHandler } from '@/lib/api';
 import { restoreAuth, signOut } from '@/lib/auth';
 import { ComposerProvider } from '@/lib/composer';
 import { SessionContext } from '@/lib/session';
+import { applyTheme, readThemeChoice } from '@/lib/theme-mode';
 import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/lib/use-breakpoint';
 
 /** 未登录可以停留的页面 */
@@ -22,6 +23,8 @@ const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 export default function RootLayout() {
   // 启动时同步读回上次登录态（Web 存在 localStorage），避免刷新后闪一下登录页
   const [restored] = useState(() => restoreAuth());
+  // 同步恢复主题：渲染前就写好 data-theme，避免刷新先闪一下暗色
+  useState(() => { applyTheme(readThemeChoice()); return true; });
 
   // 登录态：null = 未登录，此时只能停留在 /login
   const [userId, setUserId] = useState<number | null>(restored?.userId ?? null);

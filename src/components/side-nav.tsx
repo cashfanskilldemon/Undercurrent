@@ -22,6 +22,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
+import { SideMenu } from '@/components/side-menu';
 import { colors, radius, space } from '@/constants/theme';
 import { useComposer } from '@/lib/composer';
 import { useSession } from '@/lib/session';
@@ -176,6 +177,12 @@ export function SideNav() {
         </View>
       </Pressable>
 
+      {/* LOGO 旁的菜单：外观 / 声音 / 设置 / 报告问题 / 退出 */}
+      <SideMenu
+        left={showWordmark ? 205 : 66}
+        top={Math.max(insets.top, 20) + 5}
+      />
+
       <View style={styles.menuArea}>
         <View style={styles.menu}>
           {NAV.map(({ href, label, Icon }) => (
@@ -225,6 +232,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 20,
     backgroundColor: colors.background,
+    /** 下拉菜单要浮在内容之上：nav 需定位，否则 zIndex 不生效 */
+    position: 'relative',
     zIndex: 30,
   },
   /** 品牌区：波浪标居中在 80px 栏里，英文标横向挂在它右侧（横排容器宽于栏，避免被 80px 截断） */
@@ -250,7 +259,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '600',
     letterSpacing: 1.6,
-    color: '#ffffff',
+    color: colors.strong,
   },
   brandTextWeb: { fontFamily: 'Undercurrent Rounded' },
   menuArea: {

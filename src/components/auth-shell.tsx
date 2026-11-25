@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     fontSize: 88,
     fontWeight: '800',
     letterSpacing: 2,
-    color: '#ffffff',
+    color: colors.strong,
     opacity: 0.04,
   },
   scroll: {

@@ -22,4 +22,4 @@ export const CENTER_MAX_WIDTH = 680;
 /** 左侧导航宽（Instagram 式窄图标栏，图标居中） */
 export const SIDE_NAV_WIDTH = 80;
 /** 右侧推荐栏宽（收窄一点让它更贴右边缘） */
-export const RAIL_WIDTH = 340;
+export const RAIL_WIDTH = 300;
