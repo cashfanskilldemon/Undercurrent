@@ -95,18 +95,10 @@ function NavRow({
       ? EXPANDED_COMPOSE_WIDTH
       : EXPANDED_NAV_WIDTH
     : COLLAPSED_WIDTH;
-  const bg = isCompose
-    ? colors.primary
-    : expanded
-      ? colors.elevated
-      : active
-        ? colors.accent
-        : 'transparent';
-  const iconColor = isCompose
-    ? colors.primaryForeground
-    : active
-      ? colors.primary
-      : colors.foreground;
+  /** 发帖与普通行同一套底色：不再用强调色，只保留悬停胶囊 */
+  const bg = expanded ? colors.elevated : 'transparent';
+  /** 选中态不换颜色，只把图标轻微放大（见 iconSlot 的 nav-icon 过渡） */
+  const iconColor = colors.foreground;
 
   // Web 端位移/透明度全部交给 CSS；原生端没有 hover，直接给最终值
   const labelFx = web
@@ -124,11 +116,10 @@ function NavRow({
         style={[styles.item, { width, backgroundColor: bg }, pressed && styles.pressed]}
         accessibilityLabel={label}>
         <View style={styles.iconSlot}>
-          <Icon
-            size={ICON_SIZE}
-            strokeWidth={isCompose ? 2.1 : active ? 2.2 : 1.8}
-            color={iconColor}
-          />
+          {/* 选中态只放大图标，不改颜色/线宽；过渡写在 global.css 的 nav-icon 上 */}
+          <View testID="nav-icon" style={active ? styles.iconActive : undefined}>
+            <Icon size={ICON_SIZE} strokeWidth={isCompose ? 2.1 : 1.8} color={iconColor} />
+          </View>
           {!isCompose && !!badge && badge > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
@@ -137,7 +128,7 @@ function NavRow({
         </View>
         <Text
           testID="nav-label"
-          style={[styles.label, isCompose && styles.composeLabel, labelFx]}
+          style={[styles.label, labelFx]}
           numberOfLines={1}>
           {label}
         </Text>
@@ -281,6 +272,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   iconSlot: { width: ICON_SIZE, alignItems: 'center', justifyContent: 'center' },
+  /** 选中态：轻微放大，颜色保持不变 */
+  iconActive: { transform: [{ scale: 1.08 }] },
   pressed: { opacity: 0.6 },
   /** Ins 导航文字 16px / 常规字重 */
   label: {
@@ -305,5 +298,4 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 10, lineHeight: 14, fontWeight: '700', color: '#fff' },
   composeWrap: { width: COLLAPSED_WIDTH, alignItems: 'flex-start', marginBottom: 4 },
-  composeLabel: { color: colors.primaryForeground },
 });

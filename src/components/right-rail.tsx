@@ -5,10 +5,10 @@ import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'r
 
 import { AdvancedSearch, EMPTY_CRITERIA, type AdvancedCriteria } from '@/components/advanced-search';
 import { Avatar } from '@/components/avatar';
-import { colors, radius, space, type } from '@/constants/theme';
+import { colors, radius, type } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { formatCount } from '@/lib/format';
-import type { Meta, ThreadItem, TrackItem, UserBrief } from '@/lib/types';
+import type { Meta, ThreadItem, UserBrief } from '@/lib/types';
 import { RAIL_WIDTH } from '@/lib/use-breakpoint';
 import { usePaged, useResource } from '@/lib/use-paged';
 
@@ -68,7 +68,6 @@ export function RightRail() {
     }, 180);
   }, [clearHoverTimers]);
 
-  const top = usePaged<TrackItem>('/api/tracks', { sort: 'plays' }, 5);
   const meta = useResource<Meta>('/api/meta');
   // 没有用户推荐接口，取帖子流的前几位不同作者作推荐
   const feed = usePaged<ThreadItem>('/api/threads', {}, 10);
@@ -173,23 +172,28 @@ export function RightRail() {
             key={p.id}
             style={[styles.personWrap, hoveredId === p.id && styles.personWrapHovered]}>
             <View style={styles.person}>
-              <Avatar name={p.name} hue={p.hue} size={36} />
-              <View style={{ flex: 1 }}>
-                <Text
-                  testID="person-name"
-                  style={styles.personName}
-                  numberOfLines={1}
-                  {...nameHoverProps}>
-                  {p.name}
-                </Text>
+              <Avatar name={p.name} hue={p.hue} size={44} />
+              <View style={styles.personBody}>
+                <View style={styles.personNameRow}>
+                  <Text
+                    testID="person-name"
+                    style={styles.personName}
+                    numberOfLines={1}
+                    {...nameHoverProps}>
+                    {p.name}
+                  </Text>
+                  {p.verified ? (
+                    <BadgeCheck size={14} strokeWidth={2.2} color="#3897f0" />
+                  ) : null}
+                </View>
                 <Text style={styles.personHandle} numberOfLines={1}>
                   @{p.handle}
                 </Text>
-                <Text style={styles.personBio} numberOfLines={2}>
+                <Text style={styles.personBio} numberOfLines={3}>
                   {demoBioList(p)}
                 </Text>
                 <Text style={styles.personMeta} numberOfLines={1}>
-                  {p.followers ? `${formatCount(p.followers)} 位粉丝` : '暂无粉丝'}
+                  {p.followers ? `${formatCount(p.followers)}位粉丝` : '暂无粉丝'}
                 </Text>
               </View>
               <Pressable
@@ -215,41 +219,15 @@ export function RightRail() {
         );
       })}
 
-      <Text style={styles.titleGap}>热门作品</Text>
-      {top.loading ? <Text style={styles.hint}>加载中…</Text> : null}
-      {top.error ? <Text style={styles.hint}>{top.error}</Text> : null}
-      {top.items.map((t, i) => (
-        <View key={t.id} style={styles.track}>
-          <Text style={[styles.rank, i < 3 && styles.rankHot]}>{String(i + 1).padStart(2, '0')}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.trackTitle} numberOfLines={1}>
-              {t.title}
-            </Text>
-            <Text style={styles.trackMeta} numberOfLines={1}>
-              {t.artist.name} · {formatCount(t.plays)} 次播放
-            </Text>
-          </View>
+      {/* 参照 Threads 页脚：版权 + 条款 + 隐私政策一行，Cookie 政策另起一行居中 */}
+      <View style={styles.footer}>
+        <View style={styles.footerLine}>
+          <Text style={styles.footerText}>© 2026</Text>
+          <Text style={styles.footerText}>Undercurrent</Text>
+          <Text style={styles.footerText}>条款</Text>
+          <Text style={styles.footerText}>隐私政策</Text>
         </View>
-      ))}
-
-      {meta.data?.tags.length ? (
-        <>
-          <Text style={styles.titleGap}>热门标签</Text>
-          <View style={styles.tags}>
-            {meta.data.tags.slice(0, 8).map((t) => (
-              <Text key={t.tag} style={styles.tag}>
-                #{t.tag} <Text style={styles.tagCount}>{formatCount(t.posts)}</Text>
-              </Text>
-            ))}
-          </View>
-        </>
-      ) : null}
-
-      <View style={styles.about}>
-        <Text style={styles.aboutTitle}>关于 UNDERCURRENT</Text>
-        <Text style={styles.aboutText}>
-          三条波纹之下，是还没被算法收录的声音。地下电子音乐人的作品、工具与日常。
-        </Text>
+        <Text style={styles.footerText}>Cookie 政策</Text>
       </View>
     </View>
   );
@@ -397,7 +375,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    height: 38,
+    height: 40,
     paddingHorizontal: 12,
     borderRadius: radius.full,
     backgroundColor: colors.input,
@@ -410,26 +388,28 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     padding: 0,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.foreground,
   },
-  title: { ...type.label, color: colors.foreground, fontSize: 14, fontWeight: '700', marginBottom: 8 },
-  titleGap: { ...type.label, color: colors.foreground, fontSize: 14, fontWeight: '700', marginTop: 20, marginBottom: 8 },
+  title: { ...type.label, color: colors.foreground, fontSize: 16, fontWeight: '700', marginBottom: 10 },
   hint: { ...type.small, color: colors.mutedForeground, fontSize: 12, paddingVertical: 6 },
   /** 悬停整行（含卡片）作为定位与事件容器；悬停时抬高层级，避免卡片被后续行盖住 */
   personWrap: { position: 'relative', zIndex: 2 },
   personWrapHovered: { zIndex: 100 },
   /** 头像与名称/账号顶部对齐（参照 Threads），不随简介多行而垂直居中 */
-  person: { flexDirection: 'row', gap: 10, paddingVertical: 6, alignItems: 'flex-start' },
-  personName: { ...type.label, color: colors.foreground, fontSize: 13, fontWeight: '700' },
-  personHandle: { ...type.small, color: colors.mutedForeground, fontSize: 11.5, marginTop: 1 },
-  /** 列表行简介：最多两行，参照 Threads 推荐关注 */
-  personBio: { ...type.small, color: colors.foreground, fontSize: 11.5, lineHeight: 16, marginTop: 3 },
-  personMeta: { ...type.caption, color: colors.mutedForeground, fontSize: 11, marginTop: 3 },
+  person: { flexDirection: 'row', gap: 12, paddingVertical: 10, alignItems: 'flex-start' },
+  /** 文字列：占满剩余宽度，名称行与下方各行按 Threads 的行距自然堆叠 */
+  personBody: { flex: 1, minWidth: 0 },
+  personNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  personName: { ...type.label, color: colors.foreground, fontSize: 15, fontWeight: '700', lineHeight: 19, flexShrink: 1 },
+  personHandle: { ...type.small, color: colors.mutedForeground, fontSize: 13, lineHeight: 17, marginTop: 1 },
+  /** 列表行简介：最多三行，比名字小一号（参照 Threads 推荐关注） */
+  personBio: { ...type.small, color: colors.foreground, fontSize: 13.5, lineHeight: 19, marginTop: 6 },
+  personMeta: { ...type.caption, color: colors.mutedForeground, fontSize: 13, lineHeight: 17, marginTop: 6 },
   followBtn: {
-    minWidth: 50,
-    paddingHorizontal: 10,
-    height: 24,
+    minWidth: 62,
+    paddingHorizontal: 12,
+    height: 30,
     borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderStrong,
@@ -437,30 +417,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   followBtnOn: { backgroundColor: colors.elevated, borderColor: colors.border },
-  followText: { ...type.small, color: colors.foreground, fontSize: 11.5, fontWeight: '600' },
+  followText: { ...type.small, color: colors.foreground, fontSize: 13, fontWeight: '600' },
   followTextOn: { color: colors.mutedForeground, fontWeight: '400' },
-  track: { flexDirection: 'row', gap: 8, paddingVertical: 6, alignItems: 'center' },
-  rank: { ...type.num, color: colors.mutedForeground, fontSize: 11.5 },
-  rankHot: { color: colors.primary, fontWeight: '600' },
-  trackTitle: { ...type.label, color: colors.foreground, fontSize: 13 },
-  trackMeta: { ...type.caption, color: colors.mutedForeground, fontSize: 11, marginTop: 1 },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: {
-    ...type.small,
-    color: colors.mutedForeground,
-    fontSize: 11.5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.full,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderStrong,
-  },
-  tagCount: { ...type.caption, color: colors.mutedForeground, fontSize: 10.5 },
 
   /** 悬停 ID 卡片：从名字下方展开（盖住 handle/粉丝数行），右侧留白避免贴边 */
   hoverCard: {
     position: 'absolute',
-    top: 22,
+    /** 行内上内边距 10 + 名称行高 19，卡片贴在名字下沿展开 */
+    top: 28,
     /** 栏 paddingRight 加大后，卡片 right 相应减小以保持离页面右边不变 */
     right: -2,
     width: 340,
@@ -511,15 +475,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hoverMessageText: { fontSize: 12, fontWeight: '600', color: colors.hoverMessageFg },
-  about: {
-    marginTop: 20,
-    padding: space.sm + 4,
-    borderRadius: radius.lg,
-    backgroundColor: colors.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    gap: 5,
+  /** 底部版权信息（参照 Threads）：贴到右栏底部（marginTop auto），两行灰字居中 */
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 24,
+    paddingBottom: 12,
+    alignItems: 'center',
+    rowGap: 4,
   },
-  aboutTitle: { ...type.caption, color: colors.primary, letterSpacing: 1, fontSize: 11 },
-  aboutText: { ...type.small, color: colors.mutedForeground, fontSize: 11.5, lineHeight: 18 },
+  footerLine: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 8 },
+  footerText: { ...type.caption, color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
 });
