@@ -6,16 +6,16 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 
 import { AuthShell } from '@/components/auth-shell';
 import { colors, radius, space, type } from '@/constants/theme';
 import { api } from '@/lib/api';
-import type { SmsCodeResult } from '@/lib/types';
+import type { CodeResult } from '@/lib/types';
 
-const PHONE_RE = /^1[3-9]\d{9}$/;
+const EMAIL_RE = /^[\w.+-]+@[\w-]+(\.[\w-]+)+$/;
 const RESEND_SECONDS = 60;
 
-/** 忘记密码：手机号 + 短信验证码 + 新密码 */
+/** 忘记密码：邮箱 + 验证码 + 新密码 */
 export default function ForgotPasswordScreen() {
   const router = useRouter();
 
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -32,19 +32,19 @@ export default function ForgotPasswordScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const phoneOk = PHONE_RE.test(phone.trim());
+  const emailOk = EMAIL_RE.test(email.trim());
   const codeOk = /^\d{6}$/.test(code);
   const passwordOk = password.length >= 6;
   const sameOk = password.length > 0 && password === confirm;
-  const canSubmit = phoneOk && codeOk && passwordOk && sameOk && !submitting;
+  const canSubmit = emailOk && codeOk && passwordOk && sameOk && !submitting;
 
   const sendCode = async () => {
-    if (!phoneOk || countdown > 0 || sending) return;
+    if (!emailOk || countdown > 0 || sending) return;
     setSending(true);
     setError(null);
     try {
-      const res = await api.post<SmsCodeResult>('/api/auth/sms-code', {
-        phone: phone.trim(),
+      const res = await api.post<CodeResult>('/api/auth/email-code', {
+        email: email.trim(),
         scene: 'reset',
       });
       setCountdown(RESEND_SECONDS);
@@ -62,7 +62,7 @@ export default function ForgotPasswordScreen() {
     setError(null);
     try {
       await api.post('/api/auth/reset-password', {
-        phone: phone.trim(),
+        email: email.trim(),
         code,
         newPassword: password,
       });
@@ -101,7 +101,7 @@ export default function ForgotPasswordScreen() {
   return (
     <AuthShell
       title="重置密码"
-      subtitle="用注册手机号接收验证码"
+      subtitle="用注册邮箱接收验证码"
       footer={
         <Pressable onPress={() => router.replace('/login')} style={styles.backLogin}>
           <Text style={styles.backLoginText}>返回登录</Text>
@@ -109,24 +109,25 @@ export default function ForgotPasswordScreen() {
       }>
       <View style={styles.codeRow}>
         <TextInput
-          value={phone}
+          value={email}
           onChangeText={(v) => {
-            setPhone(v.replace(/\D/g, '').slice(0, 11));
+            setEmail(v.trim());
             setError(null);
           }}
-          placeholder="注册手机号"
+          placeholder="注册邮箱"
           placeholderTextColor={colors.mutedForeground}
-          keyboardType="number-pad"
-          autoComplete="tel"
-          maxLength={11}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
           style={[styles.input, styles.flex]}
         />
         <Pressable
           onPress={sendCode}
-          disabled={!phoneOk || countdown > 0 || sending}
+          disabled={!emailOk || countdown > 0 || sending}
           style={({ pressed }) => [
             styles.codeBtn,
-            (!phoneOk || countdown > 0) && styles.codeBtnDisabled,
+            (!emailOk || countdown > 0) && styles.codeBtnDisabled,
             pressed && styles.pressed,
           ]}>
           {sending ? (
@@ -151,7 +152,7 @@ export default function ForgotPasswordScreen() {
         maxLength={6}
         style={[styles.input, styles.gap]}
       />
-      {devCode ? <Text style={styles.devHint}>演示环境未接真实短信，验证码：{devCode}</Text> : null}
+      {devCode ? <Text style={styles.devHint}>演示环境未发真实邮件，验证码：{devCode}</Text> : null}
 
       <TextInput
         value={password}

@@ -8,22 +8,22 @@ import { colors, radius, space, type } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { signIn } from '@/lib/auth';
 import { useSession } from '@/lib/session';
-import type { LoginResult, SmsCodeResult } from '@/lib/types';
+import type { CodeResult, LoginResult } from '@/lib/types';
 
-type Mode = 'phone' | 'account';
+type Mode = 'email' | 'account';
 
-const PHONE_RE = /^1[3-9]\d{9}$/;
+const EMAIL_RE = /^[\w.+-]+@[\w-]+(\.[\w-]+)+$/;
 const ACCOUNT_RE = /^[a-zA-Z0-9_.]{3,20}$/;
 const RESEND_SECONDS = 60;
 
-/** 注册页：手机号（带短信验证码）或账号两种方式，成功后直接登录进首页 */
+/** 注册页：邮箱（带邮箱验证码）或账号两种方式，成功后直接登录进首页 */
 export default function RegisterScreen() {
   const router = useRouter();
   const { setUserId } = useSession();
 
-  const [mode, setMode] = useState<Mode>('phone');
+  const [mode, setMode] = useState<Mode>('email');
   const [account, setAccount] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -40,20 +40,20 @@ export default function RegisterScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const phoneOk = PHONE_RE.test(phone.trim());
-  const idOk = mode === 'phone' ? phoneOk : ACCOUNT_RE.test(account.trim());
-  const codeOk = mode === 'phone' ? /^\d{6}$/.test(code) : true;
+  const emailOk = EMAIL_RE.test(email.trim());
+  const idOk = mode === 'email' ? emailOk : ACCOUNT_RE.test(account.trim());
+  const codeOk = mode === 'email' ? /^\d{6}$/.test(code) : true;
   const passwordOk = password.length >= 6;
   const sameOk = password.length > 0 && password === confirm;
   const canSubmit = idOk && codeOk && passwordOk && sameOk && !submitting;
 
   const sendCode = async () => {
-    if (!phoneOk || countdown > 0 || sending) return;
+    if (!emailOk || countdown > 0 || sending) return;
     setSending(true);
     setError(null);
     try {
-      const res = await api.post<SmsCodeResult>('/api/auth/sms-code', {
-        phone: phone.trim(),
+      const res = await api.post<CodeResult>('/api/auth/email-code', {
+        email: email.trim(),
         scene: 'register',
       });
       setCountdown(RESEND_SECONDS);
@@ -71,9 +71,7 @@ export default function RegisterScreen() {
     setError(null);
     try {
       const result = await api.post<LoginResult>('/api/auth/register', {
-        ...(mode === 'phone'
-          ? { phone: phone.trim(), smsCode: code }
-          : { account: account.trim() }),
+        ...(mode === 'email' ? { email: email.trim(), emailCode: code } : { account: account.trim() }),
         password,
         nickname: nickname.trim() || undefined,
       });
@@ -88,7 +86,7 @@ export default function RegisterScreen() {
   };
 
   const hint = (() => {
-    if (mode === 'phone' && phone.length > 0 && !phoneOk) return '请输入 11 位手机号';
+    if (mode === 'email' && email.length > 0 && !emailOk) return '请输入正确的邮箱';
     if (mode === 'account' && account.length > 0 && !idOk) return '账号需为 3-20 位字母、数字、下划线或点';
     if (password.length > 0 && !passwordOk) return '密码至少 6 位';
     if (confirm.length > 0 && !sameOk) return '两次输入的密码不一致';
@@ -111,40 +109,41 @@ export default function RegisterScreen() {
         </Pressable>
       }>
       <View style={styles.segment}>
-        {(['phone', 'account'] as Mode[]).map((m) => (
+        {(['email', 'account'] as Mode[]).map((m) => (
           <Pressable
             key={m}
             onPress={() => switchMode(m)}
             style={[styles.segmentItem, mode === m && styles.segmentItemActive]}>
             <Text style={[styles.segmentText, mode === m && styles.segmentTextActive]}>
-              {m === 'phone' ? '手机号' : '账号'}
+              {m === 'email' ? '邮箱' : '账号'}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      {mode === 'phone' ? (
+      {mode === 'email' ? (
         <>
           <View style={styles.codeRow}>
             <TextInput
-              value={phone}
+              value={email}
               onChangeText={(v) => {
-                setPhone(v.replace(/\D/g, '').slice(0, 11));
+                setEmail(v.trim());
                 setError(null);
               }}
-              placeholder="手机号"
+              placeholder="邮箱"
               placeholderTextColor={colors.mutedForeground}
-              keyboardType="number-pad"
-              autoComplete="tel"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              autoComplete="email"
               style={[styles.input, styles.flex]}
-              maxLength={11}
             />
             <Pressable
               onPress={sendCode}
-              disabled={!phoneOk || countdown > 0 || sending}
+              disabled={!emailOk || countdown > 0 || sending}
               style={({ pressed }) => [
                 styles.codeBtn,
-                (!phoneOk || countdown > 0) && styles.codeBtnDisabled,
+                (!emailOk || countdown > 0) && styles.codeBtnDisabled,
                 pressed && styles.pressed,
               ]}>
               {sending ? (
@@ -169,7 +168,7 @@ export default function RegisterScreen() {
             maxLength={6}
             style={[styles.input, styles.gap]}
           />
-          {devCode ? <Text style={styles.devHint}>演示环境未接真实短信，验证码：{devCode}</Text> : null}
+          {devCode ? <Text style={styles.devHint}>演示环境未发真实邮件，验证码：{devCode}</Text> : null}
         </>
       ) : (
         <TextInput
@@ -190,7 +189,7 @@ export default function RegisterScreen() {
       <TextInput
         value={nickname}
         onChangeText={setNickname}
-        placeholder={mode === 'phone' ? '昵称（选填，默认「乐迷」+ 手机后四位）' : '昵称（选填，默认用账号）'}
+        placeholder={mode === 'email' ? '昵称（选填，默认用邮箱前缀）' : '昵称（选填，默认用账号）'}
         placeholderTextColor={colors.mutedForeground}
         autoCorrect={false}
         autoComplete="off"
@@ -250,6 +249,8 @@ export default function RegisterScreen() {
           </>
         )}
       </Pressable>
+
+      <Text style={styles.note}>手机号后续用于实名认证，注册阶段不要求填写。</Text>
     </AuthShell>
   );
 }
@@ -313,6 +314,13 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.8 },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.primaryForeground },
+  note: {
+    ...type.caption,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: space.md,
+  },
   backLogin: { alignSelf: 'center', padding: 6 },
   backLoginText: { ...type.small, color: colors.mutedForeground },
 });

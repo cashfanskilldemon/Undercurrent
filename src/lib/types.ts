@@ -157,8 +157,8 @@ export interface LoginResult {
   user: UserProfile;
 }
 
-/** POST /api/auth/sms-code 出参（devCode 仅开发环境返回） */
-export interface SmsCodeResult {
+/** POST /api/auth/email-code、/sms-code 出参（devCode 仅开发环境返回） */
+export interface CodeResult {
   sent: boolean;
   ttlMinutes: number;
   devCode?: string;
