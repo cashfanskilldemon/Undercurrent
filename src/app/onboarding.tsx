@@ -266,7 +266,7 @@ export default function OnboardingScreen() {
             </View>
           </View>
 
-          {/* 底部工具条：左边已选（可逐个取消），右边继续 */}
+          {/* 底部工具条：左边展示已选，右边继续 */}
           <View style={styles.toolbar}>
             <View style={styles.tally}>
               {error ? (
@@ -288,7 +288,7 @@ export default function OnboardingScreen() {
                   </ScrollView>
                 </>
               ) : (
-                <Text style={styles.tallyHint}>点一下泡泡就选中，再点取消</Text>
+                <Text style={styles.tallyHint}>拖动画布浏览，点泡泡选择</Text>
               )}
             </View>
 
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   selectedText: { fontSize: 11.5, color: colors.foreground },
   /** 泡泡区：负边距抵消容器内边距，视觉上贴到窗口边缘 */
-  cloudWrap: { flex: 1, marginTop: 6, marginHorizontal: -22, marginBottom: 2 },
+  cloudWrap: { flex: 1, marginTop: 6, marginHorizontal: -22, marginBottom: 6 },
 
   /** 底部工具条：已选横排 + 继续 */
   toolbar: {
@@ -585,7 +585,21 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-  tally: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, minWidth: 0 },
+  tally: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 64,
+    minWidth: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.card,
+  },
   tallyScroll: { flex: 1 },
   tallyChips: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 4 },
   tallyHint: { ...type.small, fontSize: 13, color: colors.mutedForeground },

@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import {
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import { colors } from '@/constants/theme';
 import type { GenreGroup } from '@/lib/types';
@@ -170,6 +177,63 @@ function layout(items: { name: string; category: string }[], W: number, H: numbe
   return out;
 }
 
+/** 泡泡区域相对可视区的放大倍数：画布更大、泡泡更大，靠拖动浏览 */
+const ZOOM = 2.2;
+
+/** 单个泡泡：位置由父级逐帧计算后传入，用 left/top 绝对定位（本环境 transform 不生效） */
+const BubbleCell = ({
+  bubble,
+  x,
+  y,
+  selected,
+  full,
+  hovered,
+  onHover,
+  onToggle,
+}: {
+  bubble: Bubble;
+  x: number;
+  y: number;
+  selected: boolean;
+  full: boolean;
+  hovered: boolean;
+  onHover: (name: string | null) => void;
+  onToggle: (name: string) => void;
+}) => {
+  return (
+    <View
+      testID="bubble-cell"
+      style={[
+        styles.cell,
+        {
+          left: x - bubble.r,
+          top: y - bubble.r,
+          width: bubble.r * 2,
+          height: bubble.r * 2,
+        },
+      ]}>
+      <Pressable
+        testID="bubble"
+        onPress={() => onToggle(bubble.name)}
+        onHoverIn={() => onHover(bubble.name)}
+        onHoverOut={() => onHover(null)}
+        style={[
+          styles.bubble,
+          { borderRadius: bubble.r },
+          hovered && styles.bubbleHover,
+          selected && styles.bubbleOn,
+          full && styles.bubbleFull,
+        ]}>
+        <Text
+          numberOfLines={1}
+          style={[styles.label, { fontSize: bubble.fontSize }, selected && styles.labelOn]}>
+          {bubble.name}
+        </Text>
+      </Pressable>
+    </View>
+  );
+};
+
 export function BubbleCloud({
   groups,
   selected,
@@ -186,8 +250,22 @@ export function BubbleCloud({
 }) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [hovered, setHovered] = useState<string | null>(null);
+  /** 画布平移（left/top），拖动时更新 */
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  /** 所有泡泡的实时位置（x,y 交替），由每帧物理写回并驱动渲染 */
+  const [positions, setPositions] = useState<number[]>([]);
   const win = useWindowDimensions();
   const fieldRef = useRef<any>(null);
+  const handlersRef = useRef({ onToggle });
+  handlersRef.current = { onToggle };
+  const panRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef<{ ox: number; oy: number; moved: boolean } | null>(null);
+
+  // 物理状态（放在 ref，逐帧读写不触发渲染；只在每帧末尾整体 setPositions 一次）
+  const posRef = useRef<number[]>([]);
+  const velRef = useRef<number[]>([]);
+  const baseRef = useRef<number[]>([]);
+  const radiiRef = useRef<number[]>([]);
 
   /**
    * 取真实尺寸：Web 上用 ResizeObserver 直接读 DOM（onLayout 首帧偶尔给 0 且不再触发），
@@ -236,13 +314,189 @@ export function BubbleCloud({
           h: Math.max(320, win.height - 330),
         };
 
-  // 只在尺寸/数据变化时重排；选中、悬停不触发重新布局
-  const bubbles = useMemo(() => layout(visible, box.w, box.h), [visible, box.w, box.h]);
+  /** 虚拟画布尺寸：比可视区大一圈，泡泡随之放大，靠拖动浏览 */
+  const worldW = Math.round(box.w * ZOOM);
+  const worldH = Math.round(box.h * ZOOM);
+
+  // 只在尺寸/数据变化时重排；选中、悬停、拖动都不触发重新布局
+  const bubbles = useMemo(() => layout(visible, worldW, worldH), [visible, worldW, worldH]);
+
+  /** 初始化泡泡位置与漂浮速度（每个泡泡给一个缓慢的随机初速度） */
+  useEffect(() => {
+    const arr: number[] = [];
+    const vel: number[] = [];
+    for (let i = 0; i < bubbles.length; i++) {
+      arr[i * 2] = bubbles[i].x;
+      arr[i * 2 + 1] = bubbles[i].y;
+      // 缓慢漂浮：约 0.18~0.35 px/帧，方向随机（温和，不抢焦点，也方便点击）
+      const a = (i * 2.399963) % (Math.PI * 2);
+      const sp = 0.18 + ((i * 37) % 13) / 72;
+      vel[i * 2] = Math.cos(a) * sp;
+      vel[i * 2 + 1] = Math.sin(a) * sp;
+    }
+    posRef.current = arr;
+    velRef.current = vel.slice();
+    baseRef.current = vel;
+    radiiRef.current = bubbles.map((b) => b.r);
+    setPositions(arr.slice());
+  }, [bubbles]);
+
+  /** 平移边界：画布不能拖到可视区外留白（画布比可视区小则居中不拖） */
+  const clampOffset = (x: number, y: number) => ({
+    x: worldW <= box.w ? -(worldW - box.w) / 2 : clamp(x, box.w - worldW, 0),
+    y: worldH <= box.h ? -(worldH - box.h) / 2 : clamp(y, box.h - worldH, 0),
+  });
+
+  /** 画布尺寸改变时回到居中位置（首次进入、分类切换导致重排后） */
+  useEffect(() => {
+    const center = clampOffset(-(worldW - box.w) / 2, -(worldH - box.h) / 2);
+    panRef.current = center;
+    setPan(center);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [worldW, worldH, box.w, box.h]);
+
+  /**
+   * 逐帧物理：自由漂浮 + 软碰撞 + 边界反弹 + 速度回归基准。
+   * 每帧算完整体 setPositions 一次，驱动 126 个泡泡用 left/top 重新定位。
+   */
+  useEffect(() => {
+    let raf = 0;
+    let last = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+    const step = (now: number) => {
+      // 限制帧间隔换算，避免掉帧时泡泡暴走；固定接近 1 让速度更稳
+      const dtf = Math.min(1.6, Math.max(0.6, (now - last) / 16.7));
+      last = now;
+
+      const pos = posRef.current;
+      const vel = velRef.current;
+      const base = baseRef.current;
+      const rad = radiiRef.current;
+      const n = rad.length;
+
+      if (n && pos.length >= n * 2 && vel.length >= n * 2 && worldW > 0) {
+        // 1) 自由漂浮
+        for (let i = 0; i < n; i++) {
+          pos[i * 2] += vel[i * 2] * dtf;
+          pos[i * 2 + 1] += vel[i * 2 + 1] * dtf;
+        }
+        // 2) 软碰撞：靠得太近就柔和弹开
+        for (let i = 0; i < n; i++) {
+          const xi = pos[i * 2];
+          const yi = pos[i * 2 + 1];
+          const ri = rad[i];
+          for (let j = i + 1; j < n; j++) {
+            let dx = pos[j * 2] - xi;
+            let dy = pos[j * 2 + 1] - yi;
+            const min = ri + rad[j] + 6;
+            const d2 = dx * dx + dy * dy;
+            if (d2 >= min * min) continue;
+            let d = Math.sqrt(d2);
+            if (d < 0.001) {
+              dx = 0.01;
+              dy = 0.01;
+              d = 0.014;
+            }
+            const nx = dx / d;
+            const ny = dy / d;
+            const ov = (min - d) * 0.04;
+            vel[i * 2] -= nx * ov * 0.1;
+            vel[i * 2 + 1] -= ny * ov * 0.1;
+            vel[j * 2] += nx * ov * 0.1;
+            vel[j * 2 + 1] += ny * ov * 0.1;
+            pos[i * 2] -= nx * ov;
+            pos[i * 2 + 1] -= ny * ov;
+            pos[j * 2] += nx * ov;
+            pos[j * 2 + 1] += ny * ov;
+          }
+        }
+        // 3) 边界反弹 + 4) 速度回归基准（保证永远温和漂浮，不会慢慢停住）
+        for (let i = 0; i < n; i++) {
+          const r = rad[i];
+          const minX = 14 + r;
+          const maxX = worldW - 14 - r;
+          const minY = 14 + r;
+          const maxY = worldH - 14 - r;
+          if (pos[i * 2] < minX) {
+            pos[i * 2] = minX;
+            vel[i * 2] = Math.abs(vel[i * 2]) * 0.8;
+          } else if (pos[i * 2] > maxX) {
+            pos[i * 2] = maxX;
+            vel[i * 2] = -Math.abs(vel[i * 2]) * 0.8;
+          }
+          if (pos[i * 2 + 1] < minY) {
+            pos[i * 2 + 1] = minY;
+            vel[i * 2 + 1] = Math.abs(vel[i * 2 + 1]) * 0.8;
+          } else if (pos[i * 2 + 1] > maxY) {
+            pos[i * 2 + 1] = maxY;
+            vel[i * 2 + 1] = -Math.abs(vel[i * 2 + 1]) * 0.8;
+          }
+          const k = 0.02;
+          vel[i * 2] += (base[i * 2] - vel[i * 2]) * k;
+          vel[i * 2 + 1] += (base[i * 2 + 1] - vel[i * 2 + 1]) * k;
+        }
+        setPositions(pos.slice());
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [worldW, worldH]);
+
+  /** 把指针事件换算成画布内坐标 */
+  const pointInField = (event: any) => {
+    const native: any = event?.nativeEvent ?? {};
+    const node: any = fieldRef.current;
+    if (node?.getBoundingClientRect) {
+      const rect = node.getBoundingClientRect();
+      return {
+        x: (native.clientX ?? native.pageX ?? 0) - rect.left,
+        y: (native.clientY ?? native.pageY ?? 0) - rect.top,
+      };
+    }
+    return { x: native.locationX ?? 0, y: native.locationY ?? 0 };
+  };
+
+  /**
+   * 手势：按住拖动 = 平移整块画布（像拖地图）；轻点 = 选中命中的泡泡。
+   */
+  const fieldResponder = useMemo(
+    () =>
+      PanResponder.create({
+        // 轻点交给泡泡的 Pressable.onPress 选中，只有拖动超过阈值才接管平移
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) + Math.abs(gesture.dy) > 8,
+        onPanResponderGrant: () => {
+          const cur = panRef.current;
+          dragRef.current = { ox: cur.x, oy: cur.y, moved: false };
+        },
+        onPanResponderMove: (_, gesture) => {
+          const start = dragRef.current;
+          if (!start) return;
+          if (Math.abs(gesture.dx) + Math.abs(gesture.dy) > 4) start.moved = true;
+          const next = clampOffset(start.ox + gesture.dx, start.oy + gesture.dy);
+          panRef.current = next;
+          setPan(next);
+        },
+        onPanResponderRelease: () => {
+          // 点击选中由每个泡泡的 Pressable.onPress 处理，这里只清理拖动状态
+          dragRef.current = null;
+        },
+        onPanResponderTerminate: () => {
+          dragRef.current = null;
+        },
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bubbles, worldW, worldH, box.w, box.h]
+  );
 
   return (
     <View
       ref={fieldRef}
       testID="bubble-field"
+      {...fieldResponder.panHandlers}
       style={styles.field}
       onLayout={(e) => {
         const { width, height } = e.nativeEvent.layout;
@@ -253,45 +507,36 @@ export function BubbleCloud({
             : { w: width, h: height }
         );
       }}>
-      {size.w < 1 ? null : bubbles.map((b) => {
-        const on = selected.includes(b.name);
-        // 到上限后，未选中的泡泡变淡提示「选不下了」，但仍可点——点了才提示原因
-        const full = !on && selected.length >= max;
-        return (
-          <View
-            key={b.name}
-            testID="bubble-cell"
-            style={[
-              styles.cell,
-              { left: b.x - b.r, top: b.y - b.r, width: b.r * 2, height: b.r * 2 },
-            ]}>
-            <Pressable
-              testID="bubble"
-              onPress={() => onToggle(b.name)}
-              onHoverIn={() => setHovered(b.name)}
-              onHoverOut={() => setHovered((h) => (h === b.name ? null : h))}
-              style={[
-                styles.bubble,
-                { borderRadius: b.r },
-                hovered === b.name && styles.bubbleHover,
-                on && styles.bubbleOn,
-                full && styles.bubbleFull,
-              ]}>
-              <Text
-                numberOfLines={1}
-                style={[styles.label, { fontSize: b.fontSize }, on && styles.labelOn]}>
-                {b.name}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      })}
+      <View
+        testID="bubble-world"
+        style={[styles.world, { width: worldW, height: worldH, left: pan.x, top: pan.y }]}>
+        {bubbles.map((b, i) => {
+          const on = selected.includes(b.name);
+          // 到上限后，未选中的泡泡变淡提示「选不下了」，但仍可点——操作了才提示原因
+          const full = !on && selected.length >= max;
+          return (
+            <BubbleCell
+              key={b.name}
+              bubble={b}
+              x={positions[i * 2] ?? b.x}
+              y={positions[i * 2 + 1] ?? b.y}
+              selected={on}
+              full={full}
+              hovered={hovered === b.name}
+              onHover={setHovered}
+              onToggle={handlersRef.current.onToggle}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   field: { flex: 1, position: 'relative', overflow: 'hidden' },
+  /** 可拖动的放大画布：绝对定位在视口内，靠 left/top 平移 */
+  world: { position: 'absolute' },
   cell: { position: 'absolute' },
   bubble: {
     flex: 1,

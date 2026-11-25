@@ -300,6 +300,8 @@ body::-webkit-scrollbar,
   animation-direction: alternate;
   transition: opacity 260ms ease;
   will-change: transform;
+  touch-action: none;
+  user-select: none;
 }
 [data-testid='bubble-cell']:nth-child(3n + 2) {
   animation-name: bubble-drift-b;
@@ -346,6 +348,13 @@ body::-webkit-scrollbar,
 }
 
 /* 泡泡本体：手型指针，暗色下描边就是可见边界 */
+/* 泡泡画布整片可拖动 */
+[data-testid='bubble-field'] {
+  cursor: grab;
+}
+[data-testid='bubble-field']:active {
+  cursor: grabbing;
+}
 [data-testid='bubble'] {
   cursor: pointer;
 }
