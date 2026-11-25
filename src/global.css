@@ -30,6 +30,15 @@
   --uc-menu-selected: #3c3c3c;
   --uc-switch-track: #4a4a4a;
   --uc-switch-thumb: #ffffff;
+  /* 悬停卡片按钮（暗色）：关注白底黑字、发消息深底描边 */
+  --uc-hover-follow-bg: #ffffff;
+  --uc-hover-follow-fg: #0a0a0a;
+  --uc-hover-follow-on-bg: #2a2a2a;
+  --uc-hover-follow-on-fg: #ffffff;
+  --uc-hover-follow-on-border: #4a4a4a;
+  --uc-hover-message-bg: #2a2a2a;
+  --uc-hover-message-fg: #ffffff;
+  --uc-hover-message-border: #4a4a4a;
 }
 
 /* 浅色：参照 Threads 浅色，白底 + 近黑字 + 保留酸性黄绿强调色 */
@@ -56,11 +65,64 @@
   --uc-menu-selected: #e6e6e6;
   --uc-switch-track: #cfcfcf;
   --uc-switch-thumb: #ffffff;
+  /* 悬停卡片按钮（浅色）：保持黑白风 */
+  --uc-hover-follow-bg: #000000;
+  --uc-hover-follow-fg: #ffffff;
+  --uc-hover-follow-on-bg: #ffffff;
+  --uc-hover-follow-on-fg: #0a0a0a;
+  --uc-hover-follow-on-border: #cfcfcf;
+  --uc-hover-message-bg: #ffffff;
+  --uc-hover-message-fg: #0a0a0a;
+  --uc-hover-message-border: #cfcfcf;
 }
 
-/* 推荐关注悬停卡片：与菜单一致的浮层阴影 */
-[data-testid='user-hover-card'] {
+/* 推荐关注悬停卡片：与菜单一致的浮层阴影 + 弹出/收起动画 */
+[data-testid='user-hover-card'],
+[data-testid='user-hover-card-closing'] {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  /* 顶部贴住 id，动画从顶边向下展开 */
+  transform-origin: top right;
+  will-change: transform, opacity;
+}
+/* 挂载即播放：从 id 处向下滑出的弹出效果（与外观菜单同步 200ms） */
+[data-testid='user-hover-card'] {
+  animation: user-card-pop 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+/* 收起：向上收回到 id 处并淡出，动画结束组件才卸载（CARD_EXIT_MS 180ms） */
+[data-testid='user-hover-card-closing'] {
+  animation: user-card-close 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+:root[data-theme='light'] [data-testid='user-hover-card'],
+:root[data-theme='light'] [data-testid='user-hover-card-closing'] {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes user-card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes user-card-close {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='user-hover-card'],
+  [data-testid='user-hover-card-closing'] {
+    animation: none;
+  }
 }
 
 /* 推荐关注的名字：悬停下划线 + 手型指针（参照 Threads） */

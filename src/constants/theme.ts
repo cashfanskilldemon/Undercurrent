@@ -51,6 +51,16 @@ export const colors = {
   menuSelected: token('menu-selected', '#3c3c3c'),
   switchTrack: token('switch-track', '#4a4a4a'),
   switchThumb: token('switch-thumb', '#ffffff'),
+
+  /** 悬停卡片按钮：浅色=关注黑底/发消息白底，暗色=关注白底/发消息深底带描边 */
+  hoverFollowBg: token('hover-follow-bg', '#ffffff'),
+  hoverFollowFg: token('hover-follow-fg', '#0a0a0a'),
+  hoverFollowOnBg: token('hover-follow-on-bg', '#242424'),
+  hoverFollowOnFg: token('hover-follow-on-fg', '#ffffff'),
+  hoverFollowOnBorder: token('hover-follow-on-border', '#4a4a4a'),
+  hoverMessageBg: token('hover-message-bg', '#2a2a2a'),
+  hoverMessageFg: token('hover-message-fg', '#ffffff'),
+  hoverMessageBorder: token('hover-message-border', '#4a4a4a'),
 } as const;
 
 export const radius = {

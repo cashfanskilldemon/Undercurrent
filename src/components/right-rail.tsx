@@ -12,6 +12,9 @@ import type { Meta, ThreadItem, TrackItem, UserBrief } from '@/lib/types';
 import { RAIL_WIDTH } from '@/lib/use-breakpoint';
 import { usePaged, useResource } from '@/lib/use-paged';
 
+/** 卡片收起动画时长，与外观菜单的 CLOSE_MS 保持一致 */
+const CARD_EXIT_MS = 180;
+
 /** 宽屏 Web 的右侧推荐栏（≥1120px）：搜索、推荐关注、热门作品、标签 */
 export function RightRail() {
   const router = useRouter();
@@ -21,22 +24,48 @@ export function RightRail() {
   const [followed, setFollowed] = useState<number[]>([]);
   /** 鼠标悬停的推荐用户 id，用于弹出 ID 卡片（仅名字触发） */
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  /** 卡片收起中：先播退出动画，动画结束才真正卸载（与菜单的 180ms 一致） */
+  const [cardClosing, setCardClosing] = useState(false);
+  /** 换 key 让卡片重新挂载，CSS 弹出动画才会从头播放 */
+  const [cardSeq, setCardSeq] = useState(0);
+  /** 当前已完整显示的卡片所属用户；收起时清空，便于重新弹出 */
+  const shownId = useRef<number | null>(null);
   const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearHoverTimers = useCallback(() => {
     if (enterTimer.current) { clearTimeout(enterTimer.current); enterTimer.current = null; }
     if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
+    if (exitTimer.current) { clearTimeout(exitTimer.current); exitTimer.current = null; }
   }, []);
   useEffect(() => () => clearHoverTimers(), [clearHoverTimers]);
-  /** 名字进入：缓冲 200ms 才显示卡片，避免扫过时乱弹 */
+  /** 名字进入：缓冲 200ms 才显示卡片，避免扫过时乱弹；收起过程中进入则取消收起 */
   const onNameEnter = useCallback((id: number) => {
     clearHoverTimers();
-    enterTimer.current = setTimeout(() => { setHoveredId(id); enterTimer.current = null; }, 200);
+    setCardClosing(false);
+    enterTimer.current = setTimeout(() => {
+      enterTimer.current = null;
+      setHoveredId(id);
+      // 卡片不是这个用户已展开的状态时才重播弹出动画，避免鼠标在卡片上反复重挂载
+      if (shownId.current !== id) {
+        shownId.current = id;
+        setCardSeq((n) => n + 1);
+      }
+    }, 200);
   }, [clearHoverTimers]);
-  /** 名字离开：留一点缓冲，让鼠标能移到卡片上 */
+  /** 名字离开：留一点缓冲让鼠标能移到卡片上，之后播放收起动画再卸载 */
   const onNameLeave = useCallback(() => {
     clearHoverTimers();
-    leaveTimer.current = setTimeout(() => { setHoveredId(null); leaveTimer.current = null; }, 180);
+    leaveTimer.current = setTimeout(() => {
+      leaveTimer.current = null;
+      setCardClosing(true);
+      shownId.current = null;
+      exitTimer.current = setTimeout(() => {
+        setHoveredId(null);
+        setCardClosing(false);
+        exitTimer.current = null;
+      }, CARD_EXIT_MS);
+    }, 180);
   }, [clearHoverTimers]);
 
   const top = usePaged<TrackItem>('/api/tracks', { sort: 'plays' }, 5);
@@ -156,6 +185,9 @@ export function RightRail() {
                 <Text style={styles.personHandle} numberOfLines={1}>
                   @{p.handle}
                 </Text>
+                <Text style={styles.personBio} numberOfLines={2}>
+                  {demoBioList(p)}
+                </Text>
                 <Text style={styles.personMeta} numberOfLines={1}>
                   {p.followers ? `${formatCount(p.followers)} 位粉丝` : '暂无粉丝'}
                 </Text>
@@ -169,8 +201,10 @@ export function RightRail() {
             </View>
             {hoveredId === p.id ? (
               <HoverCard
+                key={cardSeq}
                 person={p}
                 followed={on}
+                closing={cardClosing}
                 onToggleFollow={() => toggleFollow(p.id)}
                 onMessage={() => Alert.alert('消息', '私信功能还没接，先占个位')}
                 onEnter={onNameEnter.bind(null, p.id)}
@@ -221,30 +255,66 @@ export function RightRail() {
   );
 }
 
-/** 占位简介：后端 UserBrief 加 bio 字段后可替换；长短不一，卡片高度随内容自适应 */
+/** 卡片里的英文显示名（列表仍用数据库昵称）；后端 UserBrief 加 displayName 后可替换 */
+const DEMO_NAMES: Record<string, string> = {
+  'ghostwire': 'Ghostwire',
+  'line9': 'Line 9',
+  'nightshift404': 'Nightshift 404',
+  'ashe.mp3': 'Ashe',
+  'solderdad': 'Solderdad',
+  'kirakyrakira': 'Kyra',
+  'brentfaiyaz': 'Brent Faiyaz',
+  'shorthordie': 'Shorthordie',
+  'studiosusdog': 'Studio Sus',
+  'bobbyshmurda': 'Bobby Shmurda',
+};
+/** 占位简介（英文）：后端 UserBrief 加 bio 字段后可替换；长短不一，卡片高度随内容自适应 */
 const DEMO_BIOS: Record<string, string> = {
-  'ghostwire': '录音室里长大的孩子 · 做点不太吵的鼓',
-  'line9': '九号线上的采样收集者，磁带和旧电脑。',
-  'nightshift404': '夜班404 · 只在凌晨两点以后发布作品',
-  'ashe.mp3': '音乐人 · 重庆。做声音，也做夜色。',
-  'solderdad': '焊台前的即兴，电路与鼓机一起发热。',
+  'ghostwire': "Raised in the studio, making beats that don't scream.",
+  'line9': 'Sampling collector on Line 9 — tapes and old machines.',
+  'nightshift404': 'Nightshift 404 · releasing tracks only after 2 a.m.',
+  'ashe.mp3': 'Musician · Chongqing. Making sound and making night.',
+  'solderdad': 'Improvisation at the bench — circuits and drum machines.',
   'kirakyrakira': 'Kyra Ziver · ISO Supremacy.',
   'brentfaiyaz': 'ISO Supremacy.',
   'shorthordie': 'CaptainHook 🍌 I love you like you love me',
-  'studiosusdog': '狗狗加密货币太多，录音棚在地下室。',
+  'studiosusdog': 'Too much dogecoin, studio in the basement.',
   'bobbyshmurda': 'INTERNATIONAL BODMON || || shadow banned still looking good however 😀 Independent...',
 };
 /** 兜底简介：按 id 取，保证每个用户都有 */
 const FALLBACK_BIOS = [
-  '地下电子音乐人 · 独立制作',
-  '磁带、808 与深夜的灵感。',
-  '在城市边缘做声音。',
-  '让声音自己说话。',
+  'Underground electronic artist · independent producer.',
+  'Tapes, 808s and late-night inspiration.',
+  'Making sound from the edge of the city.',
+  'Let the music speak for itself.',
 ];
-/** 取卡片简介：优先真实 role/city，再占位，最后兜底 */
+/** 列表行简介：中英混排、长短不一（参照 Threads），后端 UserBrief 加 bio 字段后可替换 */
+const DEMO_BIOS_LIST: Record<string, string> = {
+  'ghostwire': 'Making sound and making night.',
+  'line9': '九号线上的采样收集者，磁带和旧电脑。',
+  'nightshift404': '夜班404 · only after 2 a.m.',
+  'ashe.mp3': '音乐人 · 重庆。',
+  'solderdad': '焊台前的即兴，电路与鼓机一起发热。Circuit bender & drum machine lover.',
+  'kirakyrakira': 'Kyra Ziver · ISO Supremacy.',
+  'brentfaiyaz': 'ISO Supremacy.',
+  'shorthordie': 'CaptainHook 🍌 I love you like you love me',
+  'studiosusdog': '录音棚在地下室，狗狗加密货币太多。',
+  'bobbyshmurda': 'INTERNATIONAL BODMON || shadow banned but still looking good 😀',
+};
+/** 列表简介：优先占位，再 role/city，最后兜底 */
+function demoBioList(p: UserBrief): string {
+  if (DEMO_BIOS_LIST[p.handle]) return DEMO_BIOS_LIST[p.handle];
+  if (p.role && p.city) return `${p.role} · ${p.city}`;
+  return 'Underground sounds. 在地下做声音。';
+}
+
+/** 卡片显示名：优先英文占位，否则用 handle 首字母大写 */
+function demoName(p: UserBrief): string {
+  return DEMO_NAMES[p.handle] ?? p.handle.replace(/(^|_)(\w)/g, (_, __, c: string) => c.toUpperCase());
+}
+/** 卡片简介：优先占位，最后兜底（全英文） */
 function demoBio(p: UserBrief): string {
   if (DEMO_BIOS[p.handle]) return DEMO_BIOS[p.handle];
-  if (p.role && p.city) return `${p.role} · ${p.city}`;
   return FALLBACK_BIOS[p.id % FALLBACK_BIOS.length];
 }
 
@@ -252,6 +322,7 @@ function demoBio(p: UserBrief): string {
 function HoverCard({
   person,
   followed,
+  closing,
   onToggleFollow,
   onMessage,
   onEnter,
@@ -259,6 +330,8 @@ function HoverCard({
 }: {
   person: UserBrief;
   followed: boolean;
+  /** 收起中：换 testID 触发 CSS 退出动画，动画期间不再响应鼠标 */
+  closing: boolean;
   onToggleFollow: () => void;
   onMessage: () => void;
   onEnter: () => void;
@@ -267,12 +340,15 @@ function HoverCard({
   const hoverProps =
     Platform.OS === 'web' ? { onMouseEnter: onEnter, onMouseLeave: onLeave } : {};
   return (
-    <View testID="user-hover-card" style={styles.hoverCard} {...hoverProps}>
+    <View
+      testID={closing ? 'user-hover-card-closing' : 'user-hover-card'}
+      style={styles.hoverCard}
+      {...hoverProps}>
       <View style={styles.hoverTop}>
         <View style={styles.hoverInfo}>
           <View style={styles.hoverNameRow}>
             <Text style={styles.hoverName} numberOfLines={1}>
-              {person.name}
+              {demoName(person)}
             </Text>
             {person.verified ? <BadgeCheck size={15} strokeWidth={2.2} color="#3897f0" /> : null}
           </View>
@@ -287,7 +363,7 @@ function HoverCard({
             </Text>
           </View>
         </View>
-        <Avatar name={person.name} hue={person.hue} size={62} />
+        <Avatar name={demoName(person)} hue={person.hue} size={62} />
       </View>
       <View style={styles.hoverActions}>
         <Pressable
@@ -312,8 +388,8 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 20,
     paddingLeft: 16,
-    /** 右侧内边距更小，整栏视觉再往右贴一点 */
-    paddingRight: 8,
+    /** 右侧留白，关注按钮不贴边（参照 Threads） */
+    paddingRight: 22,
     backgroundColor: colors.background,
   },
   searchWrap: { position: 'relative', zIndex: 60, marginBottom: 16 },
@@ -343,10 +419,13 @@ const styles = StyleSheet.create({
   /** 悬停整行（含卡片）作为定位与事件容器；悬停时抬高层级，避免卡片被后续行盖住 */
   personWrap: { position: 'relative', zIndex: 2 },
   personWrapHovered: { zIndex: 100 },
-  person: { flexDirection: 'row', gap: 10, paddingVertical: 6, alignItems: 'center' },
+  /** 头像与名称/账号顶部对齐（参照 Threads），不随简介多行而垂直居中 */
+  person: { flexDirection: 'row', gap: 10, paddingVertical: 6, alignItems: 'flex-start' },
   personName: { ...type.label, color: colors.foreground, fontSize: 13, fontWeight: '700' },
   personHandle: { ...type.small, color: colors.mutedForeground, fontSize: 11.5, marginTop: 1 },
-  personMeta: { ...type.caption, color: colors.mutedForeground, fontSize: 11, marginTop: 1 },
+  /** 列表行简介：最多两行，参照 Threads 推荐关注 */
+  personBio: { ...type.small, color: colors.foreground, fontSize: 11.5, lineHeight: 16, marginTop: 3 },
+  personMeta: { ...type.caption, color: colors.mutedForeground, fontSize: 11, marginTop: 3 },
   followBtn: {
     minWidth: 50,
     paddingHorizontal: 10,
@@ -378,28 +457,30 @@ const styles = StyleSheet.create({
   },
   tagCount: { ...type.caption, color: colors.mutedForeground, fontSize: 10.5 },
 
-  /** 悬停 ID 卡片：从名字下方展开（盖住 handle/粉丝数行），宽度超出右栏往左延伸 */
+  /** 悬停 ID 卡片：从名字下方展开（盖住 handle/粉丝数行），右侧留白避免贴边 */
   hoverCard: {
     position: 'absolute',
     top: 22,
-    right: 0,
+    /** 栏 paddingRight 加大后，卡片 right 相应减小以保持离页面右边不变 */
+    right: -2,
     width: 340,
-    padding: 18,
-    borderRadius: 14,
+    padding: 22,
+    borderRadius: 16,
     backgroundColor: colors.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    gap: 14,
+    gap: 18,
     zIndex: 10,
   },
-  hoverTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  hoverInfo: { flex: 1, gap: 3, paddingTop: 2 },
+  hoverTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  /** 名字/handle/简介/粉丝数之间留白，卡片更高更舒展 */
+  hoverInfo: { flex: 1, gap: 10, paddingTop: 2 },
   hoverNameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  hoverName: { fontSize: 16, fontWeight: '700', color: colors.strong },
+  hoverName: { fontSize: 17, fontWeight: '700', color: colors.strong },
   hoverHandle: { fontSize: 13, color: colors.mutedForeground },
   /** 简介不限制行数，卡片高度随内容自适应 */
-  hoverBio: { fontSize: 13, color: colors.foreground, lineHeight: 18, marginTop: 4, flexShrink: 1 },
-  hoverFollowers: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
+  hoverBio: { fontSize: 13, color: colors.foreground, lineHeight: 19, marginTop: 4, flexShrink: 1 },
+  hoverFollowers: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   hoverMeta: { fontSize: 13, color: colors.mutedForeground },
   hoverActions: { flexDirection: 'row', gap: 8 },
   /** 黑白风按钮：关注黑底白字、发消息白底黑字，不随主题 */
@@ -407,24 +488,29 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 34,
     borderRadius: radius.full,
-    backgroundColor: '#000000',
+    backgroundColor: colors.hoverFollowBg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hoverFollowBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hoverFollowOn: { backgroundColor: '#ffffff', borderWidth: StyleSheet.hairlineWidth, borderColor: '#cfcfcf' },
-  hoverFollowText: { fontSize: 12, fontWeight: '700', color: '#ffffff' },
-  hoverFollowTextOn: { color: '#0a0a0a' },
+  hoverFollowOn: {
+    backgroundColor: colors.hoverFollowOnBg,
+    borderColor: colors.hoverFollowOnBorder,
+  },
+  hoverFollowText: { fontSize: 12, fontWeight: '700', color: colors.hoverFollowFg },
+  hoverFollowTextOn: { color: colors.hoverFollowOnFg },
   hoverMessage: {
     flex: 1,
     height: 34,
     borderRadius: radius.full,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.hoverMessageBg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#cfcfcf',
+    borderColor: colors.hoverMessageBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hoverMessageText: { fontSize: 12, fontWeight: '600', color: '#0a0a0a' },
+  hoverMessageText: { fontSize: 12, fontWeight: '600', color: colors.hoverMessageFg },
   about: {
     marginTop: 20,
     padding: space.sm + 4,
