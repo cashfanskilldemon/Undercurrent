@@ -33,7 +33,8 @@ export default function LoginScreen() {
       });
       signIn(result.token, result.user.id, result.user.handle);
       setUserId(result.user.id);
-      router.replace('/home');
+      // 没走过注册引导的老用户也补一次（风格/艺人/身份/年龄/城市）
+      router.replace(result.needsOnboarding ? '/onboarding' : '/home');
     } catch (e) {
       setError(e instanceof Error ? e.message : '登录失败，请重试');
     } finally {

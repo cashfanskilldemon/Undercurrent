@@ -19,6 +19,8 @@ import { CENTER_MAX_WIDTH, RAIL_WIDTH, SIDE_NAV_WIDTH, useBreakpoint } from '@/l
 
 /** 未登录可以停留的页面 */
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
+/** 整屏独占、不显示导航与右栏的页面（引导页需要登录，但不属于登录页） */
+const FULLSCREEN_ROUTES = [...AUTH_ROUTES, '/onboarding'];
 
 export default function RootLayout() {
   // 启动时同步读回上次登录态（Web 存在 localStorage），避免刷新后闪一下登录页
@@ -46,13 +48,14 @@ export default function RootLayout() {
 
   // 登录相关页面整屏独占：不显示左导航 / 右栏，也不限制中列宽度
   const pathname = usePathname();
-  const bare = AUTH_ROUTES.includes(pathname);
+  const authPage = AUTH_ROUTES.includes(pathname);
+  const bare = FULLSCREEN_ROUTES.includes(pathname);
 
-  // 没登录只能待在登录相关页；已登录就不用再进这些页
-  if (userId == null && !bare) {
+  // 没登录只能待在登录相关页；已登录就不用再进这些页（引导页需要登录，不受这条限制）
+  if (userId == null && !authPage) {
     return <Redirect href="/login" />;
   }
-  if (userId != null && bare) {
+  if (userId != null && authPage) {
     return <Redirect href="/home" />;
   }
 

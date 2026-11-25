@@ -77,7 +77,8 @@ export default function RegisterScreen() {
       });
       signIn(result.token, result.user.id, result.user.handle);
       setUserId(result.user.id);
-      router.replace('/home');
+      // 注册后的第一个环节：选喜欢的风格、艺人、身份、年龄段、城市
+      router.replace(result.needsOnboarding === false ? '/home' : '/onboarding');
     } catch (e) {
       setError(e instanceof Error ? e.message : '注册失败，请重试');
     } finally {

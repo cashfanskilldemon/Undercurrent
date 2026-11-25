@@ -201,6 +201,12 @@ body::-webkit-scrollbar,
   transform: translateX(0);
 }
 
+/* 导航图标：选中态只放大，不改颜色，缩放带一点回弹 */
+[data-testid='nav-icon'] {
+  transition: transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  will-change: transform;
+}
+
 /*
  * LOGO 旁菜单的横向滑动：transform/height 交给 CSS 过渡，走 GPU 合成。
  * 用 Animated(useNativeDriver:false) 在 Web 上逐帧改 inline style 会卡顿。
@@ -281,6 +287,71 @@ body::-webkit-scrollbar,
   [data-testid='side-menu-panel-closing'],
   [data-testid='side-menu-backdrop'],
   [data-testid='side-menu-backdrop-closing'] {
+    animation: none;
+  }
+}
+
+/* 注册引导 · 流派泡泡云：每个泡泡缓慢漂浮（方向与周期按序号错开，避免整齐划一） */
+[data-testid='bubble-cell'] {
+  animation-name: bubble-drift-a;
+  animation-duration: 14s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  transition: opacity 260ms ease;
+  will-change: transform;
+}
+[data-testid='bubble-cell']:nth-child(3n + 2) {
+  animation-name: bubble-drift-b;
+  animation-duration: 18s;
+  animation-delay: -4s;
+}
+[data-testid='bubble-cell']:nth-child(3n + 3) {
+  animation-name: bubble-drift-c;
+  animation-duration: 11s;
+  animation-delay: -7s;
+}
+[data-testid='bubble-cell']:nth-child(5n + 4) {
+  animation-duration: 21s;
+  animation-delay: -9s;
+}
+[data-testid='bubble-cell']:nth-child(7n + 5) {
+  animation-duration: 16s;
+  animation-delay: -13s;
+}
+
+@keyframes bubble-drift-a {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(8px, -12px, 0);
+  }
+}
+@keyframes bubble-drift-b {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-10px, 9px, 0);
+  }
+}
+@keyframes bubble-drift-c {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(6px, 13px, 0);
+  }
+}
+
+/* 泡泡本体：手型指针，暗色下描边就是可见边界 */
+[data-testid='bubble'] {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='bubble-cell'] {
     animation: none;
   }
 }

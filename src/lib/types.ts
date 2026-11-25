@@ -155,6 +155,41 @@ export interface LoginResult {
   token: string;
   expiresIn: number;
   user: UserProfile;
+  /** true 表示还没走过注册引导，前端先跳 /onboarding */
+  needsOnboarding?: boolean;
+}
+
+/** GET /api/onboarding 出参：可选项 + 已选内容 + 是否还需要引导 */
+export interface GenreGroup {
+  /** 分类名：嘻哈 / 说唱、低音 / 俱乐部 … */
+  category: string;
+  genres: string[];
+}
+
+export interface OnboardingData {
+  needsOnboarding: boolean;
+  genres: string[];
+  /** 按分类分组的流派（宽屏泡泡云用） */
+  genreGroups?: GenreGroup[];
+  artists: UserProfile[];
+  roles: string[];
+  ageGroups: string[];
+  cities: string[];
+  selectedGenres: string[];
+  selectedArtistIds: number[];
+  currentRole?: string | null;
+  currentAgeGroup?: string | null;
+  currentCity?: string | null;
+}
+
+/** POST /api/onboarding 入参 */
+export interface OnboardingPayload {
+  genres: string[];
+  artistIds: number[];
+  role?: string | null;
+  ageGroup?: string | null;
+  city?: string | null;
+  skipped?: boolean;
 }
 
 /** POST /api/auth/email-code、/sms-code 出参（devCode 仅开发环境返回） */
