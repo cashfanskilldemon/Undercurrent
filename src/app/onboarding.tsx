@@ -1,14 +1,5 @@
 import { useRouter } from 'expo-router';
-import {
-  Blocks,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Headphones,
-  Music2,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react-native';
+import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,6 +13,7 @@ import {
 
 import { Avatar } from '@/components/avatar';
 import { BubbleCloud } from '@/components/bubble-cloud';
+import { WeaponPixelIcon, type WeaponIconName } from '@/components/weapon-pixel-icon';
 import { colors, radius, type } from '@/constants/theme';
 import { api, API_BASE } from '@/lib/api';
 import { useBreakpoint } from '@/lib/use-breakpoint';
@@ -32,26 +24,34 @@ import type {
   OnboardingPayload,
 } from '@/lib/types';
 
-/** 注册后的第一个环节：风格 → 艺人 → 身份 → 年龄 → 城市 */
-const STEPS = ['风格', '艺人', '身份', '年龄', '城市'] as const;
+/** 注册后的第一个环节：风格 → 艺人 → 武器 → 年龄 → 城市 */
+const STEPS = ['风格', '艺人', '武器', '年龄', '城市'] as const;
 
 /** 最多能选几个流派（后端同值校验） */
 const MAX_GENRES = 12;
 
-/** 身份选项的说明文案与图标（后端只存名字） */
-const ROLE_DESC: Record<string, string> = {
-  听众: '来听歌、聊歌、蹲现场',
-  制作人: '做 beat、编曲、混音',
-  音乐人: '发作品、演出、跑现场',
-  插件作者: '做插件、卖预设',
+/** 武器即身份：展示成武器，提交时仍发送后端认可的身份值 */
+type WeaponOption = {
+  role: string;
+  name: string;
+  desc: string;
+  icon: WeaponIconName;
 };
 
-function RoleIcon({ role, color }: { role: string; color: string }) {
-  if (role === '制作人') return <SlidersHorizontal size={18} strokeWidth={1.8} color={color} />;
-  if (role === '音乐人') return <Music2 size={18} strokeWidth={1.8} color={color} />;
-  if (role === '插件作者') return <Blocks size={18} strokeWidth={1.8} color={color} />;
-  return <Headphones size={18} strokeWidth={1.8} color={color} />;
-}
+const WEAPONS: WeaponOption[] = [
+  { role: '听众', name: '耳机', desc: '听歌、聊歌、蹲现场', icon: 'headphones' },
+  { role: '音乐人', name: '麦克风', desc: '发作品、演出、跑现场', icon: 'mic' },
+  { role: '制作人', name: '调音台', desc: '做 beat、编曲、混音', icon: 'mixer' },
+  { role: '插件作者', name: '效果器', desc: '做插件、卖预设', icon: 'pedal' },
+  { role: 'DJ', name: '唱盘', desc: '搓盘、接歌、控场', icon: 'dj' },
+  { role: '录音师', name: '磁带机', desc: '收音、录音、修复', icon: 'recorder' },
+  { role: '乐评人', name: '黑胶', desc: '写乐评、挖冷门', icon: 'vinyl' },
+  { role: '场地主理人', name: '舞台', desc: '办演出、经营现场', icon: 'stage' },
+];
+
+/** 后端新增身份时兜底成普通卡片，不让它变成空白 */
+const weaponFor = (role: string): WeaponOption =>
+  WEAPONS.find((w) => w.role === role) ?? { role, name: role, desc: '', icon: 'headphones' };
 
 /**
  * 屏幕左右边缘的翻页箭头：贴在窗口最左/最右，垂直居中于泡泡区域。
@@ -94,7 +94,7 @@ function EdgeArrow({
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { wide, width } = useBreakpoint();
+  const { isWeb, wide, width } = useBreakpoint();
   /** 宽屏头部：标题在左、分类在右；窗口不够宽时改为上下堆叠 */
   const stacked = width < 1180;
   const [data, setData] = useState<OnboardingData | null>(null);
@@ -295,6 +295,46 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* 最底层涂鸦底纹：五线谱/音符/贴纸线稿 + 圆体品牌字，整体压淡，不接事件 */}
+      {isWeb ? (
+        <View pointerEvents="none" style={styles.graffiti}>
+          <View
+            style={
+              [
+                StyleSheet.absoluteFill,
+                {
+                  backgroundImage: 'url(/img/graffiti.svg)',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: 0.1,
+                },
+              ] as any
+            }
+          />
+          <Text
+            style={
+              [
+                styles.graffitiWord,
+                styles.graffitiWordA,
+                { WebkitTextStrokeWidth: 1.2, WebkitTextStrokeColor: 'rgba(216,216,220,0.09)' },
+              ] as any
+            }>
+            UNDERCURRENT
+          </Text>
+          <Text
+            style={
+              [
+                styles.graffitiWord,
+                styles.graffitiWordB,
+                { WebkitTextStrokeWidth: 1, WebkitTextStrokeColor: 'rgba(216,216,220,0.08)' },
+              ] as any
+            }>
+            UNDERCURRENT
+          </Text>
+        </View>
+      ) : null}
+
       {bubbleMode ? (
         <>
           <View style={styles.bubbleScreen}>
@@ -332,7 +372,9 @@ export default function OnboardingScreen() {
       ) : (
         <ScrollView
           style={styles.scrollBody}
-          contentContainerStyle={wideMode ? styles.wideScroll : styles.scroll}
+          contentContainerStyle={
+            wideMode ? (step === 2 ? styles.weaponScrollWide : styles.wideScroll) : styles.scroll
+          }
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           {head}
@@ -396,27 +438,51 @@ export default function OnboardingScreen() {
         ) : null}
 
         {step === 2 ? (
-          <>
-            <Text style={[styles.title, wideMode && styles.heroTitle]}>你是？</Text>
-            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>只用来调整推荐和身份标识，随时可以改</Text>
-            <View style={[styles.grid, wideMode && styles.wideGrid]}>
-              {data.roles.map((r) => {
-                const on = role === r;
-                return (
-                  <Pressable
-                    key={r}
-                    onPress={() => setRole(on ? null : r)}
-                    style={[styles.roleCard, wideMode && styles.roleCardWide, on && styles.cardOn]}>
-                    <View style={styles.roleIcon}>
-                      <RoleIcon role={r} color={on ? colors.background : colors.foreground} />
-                    </View>
-                    <Text style={[styles.roleName, on && styles.textOn]}>{r}</Text>
-                    <Text style={[styles.roleDesc, on && styles.descOn]}>{ROLE_DESC[r] ?? ''}</Text>
-                  </Pressable>
-                );
-              })}
+          <View style={[styles.weaponContent, wideMode && styles.weaponContentWide]}>
+            <Text style={[styles.title, styles.weaponTitle, wideMode && styles.heroTitle]}>装备你的职业</Text>
+            <Text style={[styles.subtitle, styles.weaponSubtitle, wideMode && styles.heroSub]}>选定一件武器，它就是你的身份，随时可以重新装备</Text>
+            <View style={wideMode ? styles.weaponGridWide : styles.weaponGrid}>
+              {[...data.roles]
+                .sort((a, b) => {
+                  const ia = WEAPONS.findIndex((w) => w.role === a);
+                  const ib = WEAPONS.findIndex((w) => w.role === b);
+                  return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+                })
+                .map((r) => {
+                  const weapon = weaponFor(r);
+                  const on = role === r;
+                  return (
+                    <Pressable
+                      key={r}
+                      onPress={() => setRole(on ? null : r)}
+                      style={[
+                        wideMode ? styles.weaponCardWide : styles.weaponCard,
+                        on && styles.cardOn,
+                      ]}>
+                      {on ? (
+                        <View style={styles.equippedBadge}>
+                          <Text style={styles.equippedText}>已装备</Text>
+                        </View>
+                      ) : null}
+                      <View style={[styles.weaponIcon, wideMode && styles.weaponIconWide]}>
+                        <WeaponPixelIcon
+                          name={weapon.icon}
+                          size={wideMode ? 128 : 80}
+                          color={on ? colors.background : colors.foreground}
+                          background={on ? colors.foreground : colors.elevated}
+                        />
+                      </View>
+                      <Text style={[styles.weaponName, wideMode && styles.weaponNameWide, on && styles.textOn]}>
+                        {weapon.name}
+                      </Text>
+                      <Text style={[styles.weaponDesc, wideMode && styles.weaponDescWide, on && styles.descOn]}>
+                        {weapon.desc ? `${r} · ${weapon.desc}` : r}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
             </View>
-          </>
+          </View>
         ) : null}
 
         {step === 3 ? (
@@ -509,6 +575,8 @@ type RowDriver = {
   paused: boolean;
   /** 拖动/滚轮结束后 200ms 内不自动滚，给惯性一个缓冲 */
   resumeAt: number;
+  /** 一组艺人的总宽度（60 × 170），位置对它取模就能无缝接回开头 */
+  cycle: number;
   /** 上次真正写进 DOM 的整像素位置，相同就跳过这次写入 */
   written: number;
   scrollTo: (x: number) => void;
@@ -542,13 +610,9 @@ function ArtistRows({
       last = now;
       for (const driver of drivers.current) {
         if (!driver || driver.paused || now < driver.resumeAt || driver.max <= 0) continue;
-        driver.x += driver.dir * 0.38 * dt; // ≈23px/s，慢慢飘
-        if (driver.x >= driver.max) {
-          driver.x = driver.max;
-          driver.dir = -1;
-        } else if (driver.x <= 0) {
-          driver.x = 0;
-          driver.dir = 1;
+        // 内容渲染两遍，位置对 cycle 取模即可无缝循环：到最右端会接回最左端，不回头
+        if (driver.cycle > 0) {
+          driver.x = (((driver.x + driver.dir * 0.38 * dt) % driver.cycle) + driver.cycle) % driver.cycle;
         }
         driver.scrollTo(driver.x);
       }
@@ -600,6 +664,7 @@ function ArtistRow({
     dir: index % 2 === 0 ? 1 : -1,
     paused: false,
     resumeAt: 0,
+    cycle: 0,
     written: -1,
     // Web 上直接写 scrollLeft，绕开 scrollTo 可能的平滑滚动动画；原生端仍用 scrollTo。
     // 按整像素写并去重：0.38px/帧的位移大约只有 23 次/帧真正落 DOM，省掉大半写入。
@@ -638,11 +703,8 @@ function ArtistRow({
       startX = e.clientX;
       startScroll = driver.current.x;
       driver.current.paused = true;
-      try {
-        node.setPointerCapture?.(e.pointerId);
-      } catch {
-        /* 某些浏览器在合成事件上会抛，忽略即可 */
-      }
+      // 不能在按下时 setPointerCapture：捕获会把 click 重定向到容器，艺人卡就选不中了。
+      // 用 window 上的 move/up 接住整段拖动即可。
     };
     const move = (e: PointerEvent) => {
       if (!pressed) return;
@@ -660,24 +722,25 @@ function ArtistRow({
       pressed = false;
       if (dragging) dragUntilRef.current = Date.now() + 220;
       dragging = false;
-      driver.current.paused = false;
-      driver.current.resumeAt = performance.now() + 200;
-      try {
-        node.releasePointerCapture?.(e.pointerId);
-      } catch {
-        /* 同上 */
+      const d = driver.current;
+      // 拖到第二遍时折回第一遍的同一位置（内容重复，视觉上无跳变）
+      if (d.cycle > 0 && d.x >= d.cycle) {
+        d.x = d.x % d.cycle;
+        d.scrollTo(d.x);
       }
+      d.paused = false;
+      d.resumeAt = performance.now() + 200;
     };
 
     node.addEventListener('pointerdown', down);
-    node.addEventListener('pointermove', move);
-    node.addEventListener('pointerup', up);
-    node.addEventListener('pointercancel', up);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
     return () => {
       node.removeEventListener('pointerdown', down);
-      node.removeEventListener('pointermove', move);
-      node.removeEventListener('pointerup', up);
-      node.removeEventListener('pointercancel', up);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
     };
   }, []);
 
@@ -695,14 +758,15 @@ function ArtistRow({
           showsHorizontalScrollIndicator={false}
           onLayout={(e) => {
             const viewport = e.nativeEvent.layout.width;
-            const n = artists.length;
-            const content = n * 158 + Math.max(0, n - 1) * 12 + 96;
+            const cycle = artists.length * (158 + 12); // 卡宽 + 间距
+            const node: any = scrollRef.current;
             const d = driver.current;
-            d.max = Math.max(0, content - viewport);
-            if (!initedRef.current && d.max > 0) {
+            d.cycle = cycle;
+            d.max = Math.max(0, (node?.scrollWidth ?? cycle * 2 + 96) - viewport);
+            if (!initedRef.current && cycle > 0) {
               initedRef.current = true;
-              // 奇数行从最右端开始，这样第一行往左、第二行往右
-              d.x = d.dir > 0 ? 0 : d.max;
+              // 偶数行从 0 开始，奇数行从 cycle 开始（视觉上等价于 0，但方向相反）
+              d.x = d.dir > 0 ? 0 : cycle;
               d.scrollTo(d.x);
             }
           }}
@@ -716,17 +780,20 @@ function ArtistRow({
             }
           }}
           contentContainerStyle={styles.artistRowScroll}>
-          {artists.map((a) => (
-            <ArtistCard
-              key={a.id}
-              artist={a}
-              row
-              on={artistIds.includes(a.id)}
-              onPress={() => {
-                if (Date.now() >= dragUntilRef.current) onToggle(a.id);
-              }}
-            />
-          ))}
+          {/* 渲染两遍：第二遍只是循环用的“接尾”，位置对 cycle 取模后看不出跳变 */}
+          {[0, 1].flatMap((copy) =>
+            artists.map((a) => (
+              <ArtistCard
+                key={`${a.id}-${copy}`}
+                artist={a}
+                row
+                on={artistIds.includes(a.id)}
+                onPress={() => {
+                  if (Date.now() >= dragUntilRef.current) onToggle(a.id);
+                }}
+              />
+            ))
+          )}
         </ScrollView>
       </View>
     </View>
@@ -782,6 +849,34 @@ function ArtistCard({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  /** 涂鸦层：铺满、压到最底，内部再控制各自的透明度 */
+  graffiti: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+    overflow: 'hidden',
+  },
+  /** 品牌涂鸦字：Sedgwick Ave Display（OFL 免费），描边+淡填充，像喷在墙上的 tag */
+  graffitiWord: {
+    position: 'absolute',
+    fontFamily: 'Undercurrent Graffiti',
+    color: 'rgba(216, 216, 220, 0.14)',
+  },
+  graffitiWordA: {
+    left: -12,
+    top: '3%',
+    fontSize: 124,
+    transform: [{ rotate: '-8deg' }],
+  },
+  graffitiWordB: {
+    right: -8,
+    bottom: '3%',
+    fontSize: 86,
+    transform: [{ rotate: '6deg' }],
+  },
   scrollBody: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', gap: 12 },
   loadingText: { ...type.small, color: colors.mutedForeground, fontSize: 13 },
@@ -797,6 +892,14 @@ const styles = StyleSheet.create({
   wideScroll: {
     width: '100%',
     paddingHorizontal: 84,
+    paddingTop: 24,
+    paddingBottom: 120,
+  },
+  /** 武器步骤：少留白，让大图卡片铺满整窗 */
+  weaponScrollWide: {
+    width: '100%',
+    flexGrow: 1,
+    paddingHorizontal: 64,
     paddingTop: 24,
     paddingBottom: 120,
   },
@@ -1000,20 +1103,68 @@ const styles = StyleSheet.create({
   textOn: { color: colors.background },
   descOn: { color: colors.background, opacity: 0.7 },
 
-  roleCard: {
+  weaponContent: { width: '100%', alignItems: 'center' },
+  weaponContentWide: { flex: 1, justifyContent: 'center', paddingTop: 0 },
+  weaponTitle: { textAlign: 'center' },
+  weaponSubtitle: { textAlign: 'center', alignSelf: 'center', maxWidth: 720 },
+  weaponGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 24, width: '100%' },
+  weaponGridWide: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 40,
+    marginTop: 28,
+    width: '100%',
+    maxWidth: 1200,
+    alignSelf: 'center',
+    justifyContent: 'space-between',
+  },
+  weaponCard: {
+    position: 'relative',
     flexGrow: 1,
-    flexBasis: 190,
+    flexBasis: '45%',
+    minWidth: 150,
+    minHeight: 200,
     padding: 16,
     borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: colors.borderStrong,
-    backgroundColor: colors.card,
-    gap: 4,
+    backgroundColor: colors.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  roleCardWide: { flexBasis: 260, maxWidth: 300, padding: 24, gap: 8 },
-  roleIcon: { marginBottom: 6 },
-  roleName: { fontSize: 15, fontWeight: '700', color: colors.foreground },
-  roleDesc: { fontSize: 12.5, color: colors.mutedForeground, lineHeight: 18 },
+  weaponCardWide: {
+    flexGrow: 0,
+    flexBasis: '19%',
+    minWidth: 180,
+    maxWidth: 240,
+    minHeight: 208,
+    padding: 20,
+    gap: 10,
+  },
+  equippedBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    height: 22,
+    paddingHorizontal: 9,
+    borderRadius: 11,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  equippedText: { fontSize: 11, fontWeight: '700', color: colors.foreground },
+  weaponIcon: { alignItems: 'center', justifyContent: 'center' },
+  weaponIconWide: { height: 136 },
+  weaponName: { fontSize: 16, fontWeight: '700', color: colors.foreground, textAlign: 'center' },
+  weaponNameWide: { fontSize: 22 },
+  weaponDesc: {
+    fontSize: 12.5,
+    color: colors.mutedForeground,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  weaponDescWide: { fontSize: 13.5, lineHeight: 20 },
 
   footer: {
     width: '100%',
