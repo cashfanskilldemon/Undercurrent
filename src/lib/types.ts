@@ -150,6 +150,21 @@ export interface UserProfile extends UserBrief {
   threads?: number;
 }
 
+/** 引导第二步的艺人（来自 artist 表，带网易云抓的头像） */
+export interface Artist {
+  id: number;
+  neteaseId?: number;
+  name: string;
+  alias?: string | null;
+  /** 头像相对路径：/artists/2116.jpg，用 API_BASE 拼成完整地址 */
+  avatar?: string | null;
+  bio?: string | null;
+  /** 所属流派分类，如 嘻哈 / 说唱 */
+  category?: string | null;
+  musicSize?: number;
+  albumSize?: number;
+}
+
 /** POST /api/auth/login 出参 */
 export interface LoginResult {
   token: string;
@@ -171,7 +186,7 @@ export interface OnboardingData {
   genres: string[];
   /** 按分类分组的流派（宽屏泡泡云用） */
   genreGroups?: GenreGroup[];
-  artists: UserProfile[];
+  artists: Artist[];
   roles: string[];
   ageGroups: string[];
   cities: string[];

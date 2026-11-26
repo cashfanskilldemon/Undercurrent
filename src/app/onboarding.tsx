@@ -3,14 +3,16 @@ import {
   Blocks,
   Check,
   ChevronLeft,
+  ChevronRight,
   Headphones,
   Music2,
   SlidersHorizontal,
   X,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,13 +23,13 @@ import {
 import { Avatar } from '@/components/avatar';
 import { BubbleCloud } from '@/components/bubble-cloud';
 import { colors, radius, type } from '@/constants/theme';
-import { api } from '@/lib/api';
+import { api, API_BASE } from '@/lib/api';
 import { useBreakpoint } from '@/lib/use-breakpoint';
 import type {
+  Artist,
   GenreGroup,
   OnboardingData,
   OnboardingPayload,
-  UserProfile,
 } from '@/lib/types';
 
 /** 注册后的第一个环节：风格 → 艺人 → 身份 → 年龄 → 城市 */
@@ -51,6 +53,45 @@ function RoleIcon({ role, color }: { role: string; color: string }) {
   return <Headphones size={18} strokeWidth={1.8} color={color} />;
 }
 
+/**
+ * 屏幕左右边缘的翻页箭头：贴在窗口最左/最右，垂直居中于泡泡区域。
+ * 用「撑满高度的容器 + 居中」定位，不依赖 transform（本环境 transform 不可靠）。
+ */
+function EdgeArrow({
+  side,
+  disabled,
+  onPress,
+}: {
+  side: 'left' | 'right';
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  const Icon = side === 'left' ? ChevronLeft : ChevronRight;
+  return (
+    <View
+      pointerEvents="box-none"
+      style={[styles.edge, side === 'left' ? styles.edgeLeft : styles.edgeRight]}>
+      <Pressable
+        onPress={onPress}
+        disabled={disabled}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={side === 'left' ? '上一步' : '下一步'}
+        style={({ pressed }) => [
+          styles.arrowBtn,
+          pressed && !disabled && styles.arrowBtnOn,
+          disabled && styles.arrowBtnOff,
+        ]}>
+        <Icon
+          size={22}
+          strokeWidth={1.8}
+          color={disabled ? colors.mutedForeground : colors.foreground}
+        />
+      </Pressable>
+    </View>
+  );
+}
+
 export default function OnboardingScreen() {
   const router = useRouter();
   const { wide, width } = useBreakpoint();
@@ -71,6 +112,22 @@ export default function OnboardingScreen() {
   const [role, setRole] = useState<string | null>(null);
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
+
+  /** 宽屏艺人按流派分行：行顺序沿用流派字典，每行内部保留后端的推荐顺序 */
+  const artistRows = useMemo(() => {
+    const byCat = new Map<string, Artist[]>();
+    for (const artist of data?.artists ?? []) {
+      const category = artist.category || '其他';
+      if (!byCat.has(category)) byCat.set(category, []);
+      byCat.get(category)!.push(artist);
+    }
+    const order = [...(data?.genreGroups?.map((g) => g.category) ?? []), '其他'];
+    return [...byCat.entries()].sort((a, b) => {
+      const ia = order.indexOf(a[0]);
+      const ib = order.indexOf(b[0]);
+      return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    });
+  }, [data]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -149,6 +206,10 @@ export default function OnboardingScreen() {
     submit(false);
   };
 
+  const prev = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
   if (loading) {
     return (
       <View style={[styles.screen, styles.center]}>
@@ -170,8 +231,9 @@ export default function OnboardingScreen() {
   }
 
   const last = step === STEPS.length - 1;
-  /** 宽屏第一步用泡泡云，窄屏仍用 chips 列表 */
-  const bubbleMode = wide && step === 0;
+  /** Web 宽屏：五步全部铺开（第一步泡泡云，后四步宽网格）；窄屏保持单列 */
+  const wideMode = wide;
+  const bubbleMode = wideMode && step === 0;
   const groups: GenreGroup[] = data.genreGroups?.length
     ? data.genreGroups
     : [{ category: '全部', genres: data.genres }];
@@ -266,59 +328,22 @@ export default function OnboardingScreen() {
             </View>
           </View>
 
-          {/* 底部工具条：左边展示已选，右边继续 */}
-          <View style={styles.toolbar}>
-            <View style={styles.tally}>
-              {error ? (
-                <Text style={styles.tallyError}>{error}</Text>
-              ) : genres.length ? (
-                <>
-                  <Text style={styles.selectedLabel}>已选 {genres.length}</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.tallyScroll}
-                    contentContainerStyle={styles.tallyChips}>
-                    {genres.map((g) => (
-                      <Pressable key={g} onPress={() => toggleGenre(g)} style={styles.selectedChip}>
-                        <Text style={styles.selectedText}>{g}</Text>
-                        <X size={11} strokeWidth={2.4} color={colors.mutedForeground} />
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </>
-              ) : (
-                <Text style={styles.tallyHint}>拖动画布浏览，点泡泡选择</Text>
-              )}
-            </View>
-
-            <Pressable
-              onPress={next}
-              disabled={submitting}
-              style={[styles.primaryWide, submitting && styles.primaryDisabled]}>
-              {submitting ? (
-                <ActivityIndicator size="small" color={colors.background} />
-              ) : (
-                <Text style={styles.primaryText}>继续</Text>
-              )}
-            </Pressable>
-          </View>
         </>
       ) : (
         <ScrollView
           style={styles.scrollBody}
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={wideMode ? styles.wideScroll : styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           {head}
 
           {step === 0 ? (
             <>
-              <Text style={styles.title}>你喜欢什么声音？</Text>
-              <Text style={styles.subtitle}>可以多选，之后还会按你的口味推荐帖子和作品</Text>
+              <Text style={[styles.title, wideMode && styles.heroTitle]}>你喜欢什么声音？</Text>
+              <Text style={[styles.subtitle, wideMode && styles.heroSub]}>可以多选，之后还会按你的口味推荐帖子和作品</Text>
               {categoryRow()}
               {selectedTally}
-              <View style={styles.chips}>
+              <View style={[styles.chips, wideMode && styles.chipsWide]}>
                 {groups
                   .filter((g) => !activeCategory || g.category === activeCategory)
                   .map((g) => (
@@ -331,8 +356,8 @@ export default function OnboardingScreen() {
                             <Pressable
                               key={name}
                               onPress={() => toggleGenre(name)}
-                              style={[styles.chip, on && styles.chipOn]}>
-                              <Text style={[styles.chipText, on && styles.chipTextOn]}>{name}</Text>
+                              style={[styles.chip, wideMode && styles.chipWide, on && styles.chipOn]}>
+                              <Text style={[styles.chipText, wideMode && styles.chipTextWide, on && styles.chipTextOn]}>{name}</Text>
                             </Pressable>
                           );
                         })}
@@ -345,33 +370,43 @@ export default function OnboardingScreen() {
 
         {step === 1 ? (
           <>
-            <Text style={styles.title}>最近在听谁？</Text>
-            <Text style={styles.subtitle}>选出你喜欢的音乐人，我们会优先把他们的动态推给你</Text>
-            <View style={styles.grid}>
-              {data.artists.map((a) => (
-                <ArtistCard
-                  key={a.id}
-                  artist={a}
-                  on={artistIds.includes(a.id)}
-                  onPress={() => toggle(artistIds, a.id, setArtistIds)}
+            <Text style={[styles.title, wideMode && styles.heroTitle]}>最近在听谁？</Text>
+            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>选出你喜欢的音乐人，我们会优先把他们的动态推给你</Text>
+            {wideMode ? (
+              <View style={styles.artistRows}>
+                <ArtistRows
+                  rows={artistRows}
+                  artistIds={artistIds}
+                  onToggle={(id) => toggle(artistIds, id, setArtistIds)}
                 />
-              ))}
-            </View>
+              </View>
+            ) : (
+              <View style={styles.grid}>
+                {data.artists.map((a) => (
+                  <ArtistCard
+                    key={a.id}
+                    artist={a}
+                    on={artistIds.includes(a.id)}
+                    onPress={() => toggle(artistIds, a.id, setArtistIds)}
+                  />
+                ))}
+              </View>
+            )}
           </>
         ) : null}
 
         {step === 2 ? (
           <>
-            <Text style={styles.title}>你是？</Text>
-            <Text style={styles.subtitle}>只用来调整推荐和身份标识，随时可以改</Text>
-            <View style={styles.grid}>
+            <Text style={[styles.title, wideMode && styles.heroTitle]}>你是？</Text>
+            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>只用来调整推荐和身份标识，随时可以改</Text>
+            <View style={[styles.grid, wideMode && styles.wideGrid]}>
               {data.roles.map((r) => {
                 const on = role === r;
                 return (
                   <Pressable
                     key={r}
                     onPress={() => setRole(on ? null : r)}
-                    style={[styles.roleCard, on && styles.cardOn]}>
+                    style={[styles.roleCard, wideMode && styles.roleCardWide, on && styles.cardOn]}>
                     <View style={styles.roleIcon}>
                       <RoleIcon role={r} color={on ? colors.background : colors.foreground} />
                     </View>
@@ -386,17 +421,17 @@ export default function OnboardingScreen() {
 
         {step === 3 ? (
           <>
-            <Text style={styles.title}>你的年龄段？</Text>
-            <Text style={styles.subtitle}>匿名统计用，不会公开展示具体生日</Text>
-            <View style={styles.chips}>
+            <Text style={[styles.title, wideMode && styles.heroTitle]}>你的年龄段？</Text>
+            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>匿名统计用，不会公开展示具体生日</Text>
+            <View style={[styles.chips, wideMode && styles.chipsWide]}>
               {data.ageGroups.map((a) => {
                 const on = ageGroup === a;
                 return (
                   <Pressable
                     key={a}
                     onPress={() => setAgeGroup(on ? null : a)}
-                    style={[styles.chip, on && styles.chipOn]}>
-                    <Text style={[styles.chipText, on && styles.chipTextOn]}>{a}</Text>
+                    style={[styles.chip, wideMode && styles.chipWide, on && styles.chipOn]}>
+                    <Text style={[styles.chipText, wideMode && styles.chipTextWide, on && styles.chipTextOn]}>{a}</Text>
                   </Pressable>
                 );
               })}
@@ -406,17 +441,17 @@ export default function OnboardingScreen() {
 
         {step === 4 ? (
           <>
-            <Text style={styles.title}>你在哪座城市？</Text>
-            <Text style={styles.subtitle}>有同城的现场和活动时，好通知你</Text>
-            <View style={styles.chips}>
+            <Text style={[styles.title, wideMode && styles.heroTitle]}>你在哪座城市？</Text>
+            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>有同城的现场和活动时，好通知你</Text>
+            <View style={[styles.chips, wideMode && styles.chipsWide]}>
               {data.cities.map((c) => {
                 const on = city === c;
                 return (
                   <Pressable
                     key={c}
                     onPress={() => setCity(on ? null : c)}
-                    style={[styles.chip, on && styles.chipOn]}>
-                    <Text style={[styles.chipText, on && styles.chipTextOn]}>{c}</Text>
+                    style={[styles.chip, wideMode && styles.chipWide, on && styles.chipOn]}>
+                    <Text style={[styles.chipText, wideMode && styles.chipTextWide, on && styles.chipTextOn]}>{c}</Text>
                   </Pressable>
                 );
               })}
@@ -428,8 +463,15 @@ export default function OnboardingScreen() {
         </ScrollView>
       )}
 
-      {/* 底部操作条：泡泡云模式自带工具条，这里只服务其他步骤 */}
-      {bubbleMode ? null : (
+      {/* Web 宽屏：五步统一用屏幕两侧的箭头翻页；窄屏保留底部操作条 */}
+      {wideMode ? (
+        <>
+          <EdgeArrow side="left" disabled={step === 0 || submitting} onPress={prev} />
+          <EdgeArrow side="right" disabled={submitting} onPress={next} />
+        </>
+      ) : null}
+
+      {wideMode ? null : (
         <View style={styles.footer}>
           {step > 0 ? (
             <Pressable
@@ -459,29 +501,280 @@ export default function OnboardingScreen() {
   );
 }
 
-/** 艺人卡：色块头像 + 昵称 + @handle，选中后整卡反色并打勾 */
+/** 一行的滚动状态：全放 ref，逐帧只写 scrollLeft，不触发 React 渲染 */
+type RowDriver = {
+  x: number;
+  max: number;
+  dir: number;
+  paused: boolean;
+  /** 拖动/滚轮结束后 200ms 内不自动滚，给惯性一个缓冲 */
+  resumeAt: number;
+  /** 上次真正写进 DOM 的整像素位置，相同就跳过这次写入 */
+  written: number;
+  scrollTo: (x: number) => void;
+};
+
+/**
+ * 宽屏艺人分行：一行一个流派，行内自动缓慢来回滑动，相邻行方向相反。
+ * 全页面只跑一个 requestAnimationFrame，逐帧调各行的 scrollTo，不 setState；
+ * 鼠标拖动时暂停该行，松手后继续；拖动后的点击用时间窗吞掉，避免误选。
+ */
+function ArtistRows({
+  rows,
+  artistIds,
+  onToggle,
+}: {
+  rows: [string, Artist[]][];
+  artistIds: number[];
+  onToggle: (id: number) => void;
+}) {
+  const drivers = useRef<RowDriver[]>([]);
+  const register = useCallback((index: number, driver: RowDriver | null) => {
+    if (driver) drivers.current[index] = driver;
+    else delete drivers.current[index];
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(2.5, Math.max(0.4, (now - last) / 16.7));
+      last = now;
+      for (const driver of drivers.current) {
+        if (!driver || driver.paused || now < driver.resumeAt || driver.max <= 0) continue;
+        driver.x += driver.dir * 0.38 * dt; // ≈23px/s，慢慢飘
+        if (driver.x >= driver.max) {
+          driver.x = driver.max;
+          driver.dir = -1;
+        } else if (driver.x <= 0) {
+          driver.x = 0;
+          driver.dir = 1;
+        }
+        driver.scrollTo(driver.x);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <View style={styles.artistRows}>
+      {rows.map(([category, artists], index) => (
+        <ArtistRow
+          key={category}
+          index={index}
+          register={register}
+          category={category}
+          artists={artists}
+          artistIds={artistIds}
+          onToggle={onToggle}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ArtistRow({
+  index,
+  register,
+  category,
+  artists,
+  artistIds,
+  onToggle,
+}: {
+  index: number;
+  register: (index: number, driver: RowDriver | null) => void;
+  category: string;
+  artists: Artist[];
+  artistIds: number[];
+  onToggle: (id: number) => void;
+}) {
+  const scrollRef = useRef<any>(null);
+  const wrapRef = useRef<any>(null);
+  const dragUntilRef = useRef(0);
+  const initedRef = useRef(false);
+  const driver = useRef<RowDriver>({
+    x: 0,
+    max: 0,
+    dir: index % 2 === 0 ? 1 : -1,
+    paused: false,
+    resumeAt: 0,
+    written: -1,
+    // Web 上直接写 scrollLeft，绕开 scrollTo 可能的平滑滚动动画；原生端仍用 scrollTo。
+    // 按整像素写并去重：0.38px/帧的位移大约只有 23 次/帧真正落 DOM，省掉大半写入。
+    scrollTo: (x) => {
+      const px = Math.round(x);
+      if (px === driver.current.written) return;
+      driver.current.written = px;
+      const node: any = scrollRef.current;
+      if (!node) return;
+      if ('scrollLeft' in node) node.scrollLeft = px;
+      else node.scrollTo?.({ x: px, animated: false });
+    },
+  });
+
+  useEffect(() => {
+    register(index, driver.current);
+    return () => register(index, null);
+  }, [index, register]);
+
+  /**
+   * 用原生 pointer 事件做拖动：PanResponder 在 Web 上经常被子卡片 / img 抢走，
+   * 用户真实鼠标拖不动；pointer capture 能保证按下后整段拖动都落到这一行。
+   */
+  useEffect(() => {
+    const node: any = wrapRef.current;
+    if (!node) return;
+    let pressed = false;
+    let dragging = false;
+    let startX = 0;
+    let startScroll = 0;
+
+    const down = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      pressed = true;
+      dragging = false;
+      startX = e.clientX;
+      startScroll = driver.current.x;
+      driver.current.paused = true;
+      try {
+        node.setPointerCapture?.(e.pointerId);
+      } catch {
+        /* 某些浏览器在合成事件上会抛，忽略即可 */
+      }
+    };
+    const move = (e: PointerEvent) => {
+      if (!pressed) return;
+      const dx = e.clientX - startX;
+      if (!dragging && Math.abs(dx) < 6) return;
+      dragging = true;
+      e.preventDefault();
+      const next = Math.max(0, Math.min(driver.current.max, startScroll - dx));
+      driver.current.x = next;
+      driver.current.scrollTo(next);
+      dragUntilRef.current = Date.now() + 220;
+    };
+    const up = (e: PointerEvent) => {
+      if (!pressed) return;
+      pressed = false;
+      if (dragging) dragUntilRef.current = Date.now() + 220;
+      dragging = false;
+      driver.current.paused = false;
+      driver.current.resumeAt = performance.now() + 200;
+      try {
+        node.releasePointerCapture?.(e.pointerId);
+      } catch {
+        /* 同上 */
+      }
+    };
+
+    node.addEventListener('pointerdown', down);
+    node.addEventListener('pointermove', move);
+    node.addEventListener('pointerup', up);
+    node.addEventListener('pointercancel', up);
+    return () => {
+      node.removeEventListener('pointerdown', down);
+      node.removeEventListener('pointermove', move);
+      node.removeEventListener('pointerup', up);
+      node.removeEventListener('pointercancel', up);
+    };
+  }, []);
+
+  return (
+    <View style={styles.artistRow}>
+      <View style={styles.artistRowHead}>
+        <Text style={styles.artistRowTitle}>{category}</Text>
+        <Text style={styles.artistRowHint}>缓慢自动滑动，也可以拖动</Text>
+      </View>
+      <View ref={wrapRef} testID="artist-row-drag">
+        <ScrollView
+          ref={scrollRef}
+          testID="artist-row-scroll"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onLayout={(e) => {
+            const viewport = e.nativeEvent.layout.width;
+            const n = artists.length;
+            const content = n * 158 + Math.max(0, n - 1) * 12 + 96;
+            const d = driver.current;
+            d.max = Math.max(0, content - viewport);
+            if (!initedRef.current && d.max > 0) {
+              initedRef.current = true;
+              // 奇数行从最右端开始，这样第一行往左、第二行往右
+              d.x = d.dir > 0 ? 0 : d.max;
+              d.scrollTo(d.x);
+            }
+          }}
+          onScroll={(e) => {
+            // 浏览器把 scrollLeft 取整，逐帧回写会把小数增量吃掉；
+            // 只在用户滚轮/触控板大幅改动时才接管位置
+            const actual = e.nativeEvent.contentOffset.x;
+            if (Math.abs(actual - driver.current.x) > 8) {
+              driver.current.x = actual;
+              driver.current.resumeAt = performance.now() + 200;
+            }
+          }}
+          contentContainerStyle={styles.artistRowScroll}>
+          {artists.map((a) => (
+            <ArtistCard
+              key={a.id}
+              artist={a}
+              row
+              on={artistIds.includes(a.id)}
+              onPress={() => {
+                if (Date.now() >= dragUntilRef.current) onToggle(a.id);
+              }}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+/** 艺人卡：网易云抓的实拍头像 + 艺名 + 流派，选中后整卡反色并打勾 */
 function ArtistCard({
   artist,
   on,
   onPress,
+  large = false,
+  row = false,
 }: {
-  artist: UserProfile;
+  artist: Artist;
   on: boolean;
   onPress: () => void;
+  large?: boolean;
+  row?: boolean;
 }) {
+  const size = large ? 72 : row ? 58 : 52;
   return (
-    <Pressable onPress={onPress} style={[styles.artistCard, on && styles.cardOn]}>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.artistCard,
+        large && styles.artistCardWide,
+        row && styles.artistCardRow,
+        on && styles.cardOn,
+      ]}>
       {on ? (
         <View style={styles.check}>
           <Check size={12} strokeWidth={3} color={colors.foreground} />
         </View>
       ) : null}
-      <Avatar name={artist.name} hue={artist.hue} size={52} />
-      <Text style={[styles.artistName, on && styles.textOn]} numberOfLines={1}>
+      {artist.avatar ? (
+        <Image
+          source={{ uri: `${API_BASE}${artist.avatar}` }}
+          style={[styles.artistPhoto, { width: size, height: size, borderRadius: size / 2 }]}
+        />
+      ) : (
+        <Avatar name={artist.name} hue={(artist.neteaseId ?? 0) % 360} size={size} />
+      )}
+      <Text style={[styles.artistName, large && styles.artistNameWide, on && styles.textOn]} numberOfLines={1}>
         {artist.name}
       </Text>
-      <Text style={[styles.artistHandle, on && styles.descOn]} numberOfLines={1}>
-        @{artist.handle}
+      <Text style={[styles.artistHandle, large && styles.artistHandleWide, on && styles.descOn]} numberOfLines={1}>
+        {artist.category ?? ''}
       </Text>
     </Pressable>
   );
@@ -499,6 +792,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 28,
     paddingBottom: 24,
+  },
+  /** Web 宽屏：第 2~5 步铺满整窗，左右留出箭头的空间 */
+  wideScroll: {
+    width: '100%',
+    paddingHorizontal: 84,
+    paddingTop: 24,
+    paddingBottom: 120,
   },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },  brand: { fontSize: 12, fontWeight: '700', letterSpacing: 2.4, color: colors.foreground },
   topRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
@@ -572,47 +872,33 @@ const styles = StyleSheet.create({
   },
   selectedText: { fontSize: 11.5, color: colors.foreground },
   /** 泡泡区：负边距抵消容器内边距，视觉上贴到窗口边缘 */
-  cloudWrap: { flex: 1, marginTop: 6, marginHorizontal: -22, marginBottom: 6 },
+  cloudWrap: { flex: 1, marginTop: 6, marginHorizontal: -22, marginBottom: 0 },
 
-  /** 底部工具条：已选横排 + 继续 */
-  toolbar: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 36,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+  /**
+   * 屏幕两侧的翻页箭头：整条边撑满高度、内部垂直居中，
+   * 泡泡区刚好居中，箭头也就落在它的中间位置。
+   */
+  edge: {
+    position: 'absolute',
+    top: 132,
+    bottom: 0,
+    justifyContent: 'center',
+    zIndex: 5,
   },
-  tally: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 64,
-    minWidth: 0,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.card,
-  },
-  tallyScroll: { flex: 1 },
-  tallyChips: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 4 },
-  tallyHint: { ...type.small, fontSize: 13, color: colors.mutedForeground },
-  tallyError: { ...type.small, fontSize: 13, color: colors.destructive },
-  primaryWide: {
-    minWidth: 176,
+  edgeLeft: { left: 10 },
+  edgeRight: { right: 10 },
+  arrowBtn: {
+    width: 46,
     height: 46,
-    paddingHorizontal: 32,
-    borderRadius: radius.full,
-    backgroundColor: colors.foreground,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.elevated,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderStrong,
   },
+  arrowBtnOn: { backgroundColor: colors.card, borderColor: colors.foreground },
+  arrowBtnOff: { opacity: 0.45 },
   catChip: {
     height: 32,
     paddingHorizontal: 14,
@@ -647,8 +933,22 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.foreground, borderColor: colors.foreground },
   chipText: { fontSize: 15, color: colors.foreground },
   chipTextOn: { color: colors.background, fontWeight: '600' },
+  /** 宽屏艺人：按流派一行一条，每条内部横向滑动 */
+  artistRows: { gap: 26, marginTop: 26 },
+  artistRow: { width: '100%', userSelect: 'none' },
+  artistRowHead: { flexDirection: 'row', alignItems: 'baseline', gap: 14, marginBottom: 12 },
+  artistRowTitle: { fontSize: 21, fontWeight: '700', color: colors.foreground },
+  artistRowHint: { fontSize: 12, color: colors.mutedForeground },
+  artistRowScroll: { flexDirection: 'row', gap: 12, paddingRight: 96 },
+
+  /** 宽屏选项：更高的胶囊、更大的字 */
+  chipsWide: { gap: 12, marginTop: 28 },
+  chipWide: { height: 54, paddingHorizontal: 28 },
+  chipTextWide: { fontSize: 16 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 24 },
+  /** 宽屏网格：卡片排成 5~8 列，横向空间全用上 */
+  wideGrid: { gap: 14, marginTop: 28 },
   artistCard: {
     flexGrow: 1,
     flexBasis: 148,
@@ -661,6 +961,23 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderStrong,
     backgroundColor: colors.card,
+  },
+  /** 横向滑动行里的固定宽度卡片，避免被 flex 拉伸 */
+  artistCardRow: {
+    width: 158,
+    flexGrow: 0,
+    flexBasis: 158,
+    maxWidth: 158,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    gap: 8,
+  },
+  artistCardWide: {
+    flexBasis: 196,
+    maxWidth: 224,
+    paddingVertical: 24,
+    paddingHorizontal: 14,
+    gap: 10,
   },
   cardOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
   check: {
@@ -676,6 +993,10 @@ const styles = StyleSheet.create({
   },
   artistName: { fontSize: 14, fontWeight: '600', color: colors.foreground, marginTop: 4 },
   artistHandle: { fontSize: 12, color: colors.mutedForeground },
+  artistNameWide: { fontSize: 16 },
+  artistHandleWide: { fontSize: 13 },
+  /** 艺人头像：圆形实拍图，加载前先用 elevated 底色占位 */
+  artistPhoto: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.elevated },
   textOn: { color: colors.background },
   descOn: { color: colors.background, opacity: 0.7 },
 
@@ -689,6 +1010,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     gap: 4,
   },
+  roleCardWide: { flexBasis: 260, maxWidth: 300, padding: 24, gap: 8 },
   roleIcon: { marginBottom: 6 },
   roleName: { fontSize: 15, fontWeight: '700', color: colors.foreground },
   roleDesc: { fontSize: 12.5, color: colors.mutedForeground, lineHeight: 18 },

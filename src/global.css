@@ -348,6 +348,10 @@ body::-webkit-scrollbar,
 }
 
 /* 泡泡本体：手型指针，暗色下描边就是可见边界 */
+/* 切换分类会整片重排，淡入一下，别像画面被缩了一下 */
+[data-testid='bubble-world'] {
+  transition: opacity 180ms ease;
+}
 /* 泡泡画布整片可拖动 */
 [data-testid='bubble-field'] {
   cursor: grab;
@@ -357,6 +361,21 @@ body::-webkit-scrollbar,
 }
 [data-testid='bubble'] {
   cursor: pointer;
+}
+
+/* 艺人行拖动：禁掉浏览器原生图片拖拽和文本选中，pointer 事件才能落到行容器 */
+[data-testid='artist-row-drag'] {
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+[data-testid='artist-row-drag']:active {
+  cursor: grabbing;
+}
+[data-testid='artist-row-scroll'] img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
