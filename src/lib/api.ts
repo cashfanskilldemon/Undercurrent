@@ -66,9 +66,11 @@ function buildUrl(path: string, query?: Query) {
 }
 
 async function request<T>(path: string, init?: RequestInit, query?: Query): Promise<T> {
+  const isForm = typeof FormData !== 'undefined' && init?.body instanceof FormData;
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+    // FormData 不能手动设 Content-Type，浏览器要自己生成 boundary
+    ...(init?.body && !isForm ? { 'Content-Type': 'application/json' } : {}),
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...(!authToken && currentUserId ? { 'X-User-Id': String(currentUserId) } : {}),
   };
@@ -116,4 +118,9 @@ export const api = {
   get: <T>(path: string, query?: Query) => request<T>(path, undefined, query),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PUT', body: body === undefined ? undefined : JSON.stringify(body) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  /** 上传文件：走统一 request，自动带 token，FormData 不设 Content-Type */
+  upload: <T>(path: string, form: FormData) => request<T>(path, { method: 'POST', body: form }),
 };

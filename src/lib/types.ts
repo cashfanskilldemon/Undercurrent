@@ -5,6 +5,8 @@ export interface UserBrief {
   name: string;
   handle: string;
   hue: number;
+  /** 头像图片路径 /avatars/{id}.jpg?t=xxx；null 表示色块占位 */
+  avatar?: string | null;
   city?: string;
   role?: string;
   verified?: boolean;
@@ -25,7 +27,7 @@ export interface Attachment {
   track?: TrackBrief | null;
 }
 
-export interface ThreadItem {
+export interface PostItem {
   id: number;
   author: UserBrief;
   channel: string;
@@ -53,7 +55,7 @@ export interface Reply {
   parentId?: number | null;
 }
 
-export interface ThreadDetail extends ThreadItem {
+export interface PostDetail extends PostItem {
   replies: Reply[];
 }
 
@@ -141,13 +143,21 @@ export interface NotificationPage {
   unreadCount: number;
 }
 
+/** 个人主页外部链接 */
+export interface UserLink {
+  id: number;
+  url: string;
+  title?: string | null;
+}
+
 /** 发现页艺人卡片 / 用户资料 */
 export interface UserProfile extends UserBrief {
   bio?: string | null;
   following?: number;
   followed?: boolean;
   tracks?: number;
-  threads?: number;
+  posts?: number;
+  links?: UserLink[];
 }
 
 /** 引导第二步的艺人（来自 artist 表，带网易云抓的头像） */
@@ -189,11 +199,14 @@ export interface OnboardingData {
   artists: Artist[];
   roles: string[];
   ageGroups: string[];
+  genders?: string[];
   cities: string[];
   selectedGenres: string[];
   selectedArtistIds: number[];
   currentRole?: string | null;
   currentAgeGroup?: string | null;
+  currentAge?: number | null;
+  currentGender?: string | null;
   currentCity?: string | null;
 }
 
@@ -202,7 +215,9 @@ export interface OnboardingPayload {
   genres: string[];
   artistIds: number[];
   role?: string | null;
+  age?: number | null;
   ageGroup?: string | null;
+  gender?: string | null;
   city?: string | null;
   skipped?: boolean;
 }
@@ -219,13 +234,13 @@ export interface SearchResult {
   q: string;
   users: UserProfile[];
   tracks: TrackItem[];
-  threads: ThreadItem[];
+  posts: PostItem[];
   plugins: PluginItem[];
   total: number;
 }
 
 /** 发帖入参 */
-export interface CreateThreadPayload {
+export interface CreatePostPayload {
   channel: string;
   body: string;
   tags?: string[];

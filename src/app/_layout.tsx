@@ -50,6 +50,8 @@ export default function RootLayout() {
   const pathname = usePathname();
   const authPage = AUTH_ROUTES.includes(pathname);
   const bare = FULLSCREEN_ROUTES.includes(pathname);
+  // 个人主页不放右栏推荐关注（参照 Instagram：主页没有推荐列）
+  const hideRail = pathname.startsWith('/me');
 
   // 没登录只能待在登录相关页；已登录就不用再进这些页（引导页需要登录，不受这条限制）
   if (userId == null && !authPage) {
@@ -60,15 +62,20 @@ export default function RootLayout() {
   }
 
   /**
-   * 中列要相对「整个视口」居中（对齐 Threads），但左右两侧宽度不对称
-   * （导航 80 / 右栏 340），所以给中列容器补一段左侧内边距抵掉差值。
-   * 空间不够时按剩余空白收缩补偿量，保证中列始终能拿到最大宽度。
+   * 中列要相对「整个视口」居中，但左右两侧宽度不对称：
+   * - 有右栏（导航 80 / 右栏 300）：补左侧内边距抵掉差值（正数）
+   * - 无右栏（如个人主页）：右侧没有栏，改用右侧内边距扣掉左栏宽度（负数）
    */
+  const railVisible = xl && !bare && !hideRail;
+  // 个人主页参照 Instagram 放宽内容列（网格三列更舒展），其余页面用默认宽度
+  const centerMax = hideRail ? 935 : CENTER_MAX_WIDTH;
   const centerOffset = xl
-    ? Math.min(
-        RAIL_WIDTH - SIDE_NAV_WIDTH,
-        Math.max(0, width - (SIDE_NAV_WIDTH + RAIL_WIDTH + CENTER_MAX_WIDTH)),
-      )
+    ? railVisible
+      ? Math.min(
+          RAIL_WIDTH - SIDE_NAV_WIDTH,
+          Math.max(0, width - (SIDE_NAV_WIDTH + RAIL_WIDTH + centerMax)),
+        )
+      : -SIDE_NAV_WIDTH
     : 0;
 
   return (
@@ -84,8 +91,9 @@ export default function RootLayout() {
             style={[
               styles.centerArea,
               !bare && centerOffset > 0 && { paddingLeft: centerOffset },
+              !bare && centerOffset < 0 && { paddingRight: -centerOffset },
             ]}>
-            <View style={[styles.center, wide && !bare && styles.centerWide]}>
+            <View style={[styles.center, wide && !bare && { maxWidth: centerMax }]}>
               <Stack
                 key={userId ?? 'guest'}
                 screenOptions={{
@@ -94,7 +102,7 @@ export default function RootLayout() {
                 }}>
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen
-                  name="thread/[id]"
+                  name="post/[id]"
                   options={{
                     headerShown: true,
                     title: '帖子',
@@ -108,7 +116,7 @@ export default function RootLayout() {
             </View>
           </View>
 
-          {xl && !bare ? <RightRail /> : null}
+          {railVisible ? <RightRail /> : null}
         </View>
         <ComposerDialog />
       </SafeAreaProvider>

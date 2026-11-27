@@ -15,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import { Avatar } from '@/components/avatar';
-import { ThreadCard } from '@/components/thread-card';
+import { PostCard } from '@/components/post-card';
 import { EmptyView, ErrorView, FootLoading } from '@/components/feedback';
 import { colors, radius, space, type } from '@/constants/theme';
 import { useComposer } from '@/lib/composer';
-import type { ThreadItem, UserProfile } from '@/lib/types';
+import type { PostItem, UserProfile } from '@/lib/types';
 import { useRefreshSeq } from '@/lib/refresh';
 import { usePaged, useResource } from '@/lib/use-paged';
 import { useBreakpoint } from '@/lib/use-breakpoint';
@@ -97,7 +97,7 @@ export default function HomeScreen() {
   }, [storyScroll]);
 
   const suggested = useResource<UserProfile[]>('/api/users/suggested?limit=8');
-  const feed = usePaged<ThreadItem>('/api/threads', {
+  const feed = usePaged<PostItem>('/api/posts', {
     ...(tab === 'following' ? { following: true } : {}),
   }, 10);
   const refreshSeq = useRefreshSeq();
@@ -140,7 +140,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         data={feed.items}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <ThreadCard thread={item} />}
+        renderItem={({ item }) => <PostCard post={item} />}
         onEndReached={feed.loadMore}
         onEndReachedThreshold={0.5}
         refreshControl={

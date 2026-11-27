@@ -40,7 +40,7 @@ const NAV = [
 
 /** 帖子详情页算「讨论」的延伸，保持讨论高亮 */
 function isActive(pathname: string, href: string) {
-  if (href === '/') return pathname === '/' || pathname.startsWith('/thread');
+  if (href === '/') return pathname === '/' || pathname.startsWith('/post');
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

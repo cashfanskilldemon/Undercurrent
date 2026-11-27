@@ -8,7 +8,7 @@ import { Avatar } from '@/components/avatar';
 import { colors, radius, type } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { formatCount } from '@/lib/format';
-import type { Meta, ThreadItem, UserBrief } from '@/lib/types';
+import type { Meta, PostItem, UserBrief } from '@/lib/types';
 import { RAIL_WIDTH } from '@/lib/use-breakpoint';
 import { usePaged, useResource } from '@/lib/use-paged';
 
@@ -70,7 +70,7 @@ export function RightRail() {
 
   const meta = useResource<Meta>('/api/meta');
   // 没有用户推荐接口，取帖子流的前几位不同作者作推荐
-  const feed = usePaged<ThreadItem>('/api/threads', {}, 10);
+  const feed = usePaged<PostItem>('/api/posts', {}, 10);
 
   const people = useMemo(() => {
     const seen = new Set<number>();

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
+import { ArrowRight, Check, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,7 +11,10 @@ import {
   View,
 } from 'react-native';
 
+import { AgeMagicGame } from '@/components/age-magic-game';
 import { Avatar } from '@/components/avatar';
+import { CityPicker } from '@/components/city-picker';
+import { Logo } from '@/components/logo';
 import { BubbleCloud } from '@/components/bubble-cloud';
 import { WeaponPixelIcon, type WeaponIconName } from '@/components/weapon-pixel-icon';
 import { colors, radius, type } from '@/constants/theme';
@@ -29,6 +32,10 @@ const STEPS = ['风格', '艺人', '武器', '年龄', '城市'] as const;
 
 /** 最多能选几个流派（后端同值校验） */
 const MAX_GENRES = 12;
+
+/** 宽屏艺人横滑行的卡片尺寸：滚动循环长度与样式共用 */
+const ARTIST_ROW_WIDTH = 175;
+const ARTIST_ROW_GAP = 13;
 
 /** 武器即身份：展示成武器，提交时仍发送后端认可的身份值 */
 type WeaponOption = {
@@ -54,37 +61,42 @@ const weaponFor = (role: string): WeaponOption =>
   WEAPONS.find((w) => w.role === role) ?? { role, name: role, desc: '', icon: 'headphones' };
 
 /**
- * 屏幕左右边缘的翻页箭头：贴在窗口最左/最右，垂直居中于泡泡区域。
+ * 屏幕左右边缘的翻页箭头：随窗口宽度往内缩，垂直居中于内容区。
  * 用「撑满高度的容器 + 居中」定位，不依赖 transform（本环境 transform 不可靠）。
  */
 function EdgeArrow({
   side,
   disabled,
+  inset,
   onPress,
 }: {
   side: 'left' | 'right';
   disabled?: boolean;
+  /** 距窗口左右边缘的距离，由父级按内容栏宽度算出来 */
+  inset: number;
   onPress: () => void;
 }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight;
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.edge, side === 'left' ? styles.edgeLeft : styles.edgeRight]}>
+      style={[styles.edge, side === 'left' ? { left: inset } : { right: inset }]}>
       <Pressable
         onPress={onPress}
         disabled={disabled}
-        hitSlop={10}
+        hitSlop={14}
+        testID={`edge-arrow-${side}`}
         accessibilityRole="button"
         accessibilityLabel={side === 'left' ? '上一步' : '下一步'}
-        style={({ pressed }) => [
+        style={(s: any) => [
           styles.arrowBtn,
-          pressed && !disabled && styles.arrowBtnOn,
+          s.hovered && !disabled && styles.arrowBtnHover,
+          s.pressed && !disabled && styles.arrowBtnOn,
           disabled && styles.arrowBtnOff,
         ]}>
         <Icon
-          size={22}
-          strokeWidth={1.8}
+          size={28}
+          strokeWidth={2.2}
           color={disabled ? colors.mutedForeground : colors.foreground}
         />
       </Pressable>
@@ -110,7 +122,8 @@ export default function OnboardingScreen() {
   const [genres, setGenres] = useState<string[]>([]);
   const [artistIds, setArtistIds] = useState<number[]>([]);
   const [role, setRole] = useState<string | null>(null);
-  const [ageGroup, setAgeGroup] = useState<string | null>(null);
+  const [age, setAge] = useState<number | null>(null);
+  const [gender, setGender] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
 
   /** 宽屏艺人按流派分行：行顺序沿用流派字典，每行内部保留后端的推荐顺序 */
@@ -138,7 +151,8 @@ export default function OnboardingScreen() {
       setGenres(res.selectedGenres ?? []);
       setArtistIds(res.selectedArtistIds ?? []);
       setRole(res.currentRole ?? null);
-      setAgeGroup(res.currentAgeGroup ?? null);
+      setAge(res.currentAge ?? null);
+      setGender(res.currentGender ?? null);
       setCity(res.currentCity ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : '加载失败，请重试');
@@ -187,7 +201,8 @@ export default function OnboardingScreen() {
             genres,
             artistIds,
             role,
-            ageGroup,
+            age,
+            gender,
             city,
           };
       await api.post<OnboardingData>('/api/onboarding', payload);
@@ -233,6 +248,8 @@ export default function OnboardingScreen() {
   const last = step === STEPS.length - 1;
   /** Web 宽屏：五步全部铺开（第一步泡泡云，后四步宽网格）；窄屏保持单列 */
   const wideMode = wide;
+  /** 箭头距边缘：窗口越宽越往内收，最多 52px，且保证不压到中间内容栏 */
+  const arrowInset = wide ? Math.max(24, Math.min(52, Math.round((width - 900) / 2 - 84))) : 24;
   const bubbleMode = wideMode && step === 0;
   const groups: GenreGroup[] = data.genreGroups?.length
     ? data.genreGroups
@@ -242,7 +259,10 @@ export default function OnboardingScreen() {
     <>
       {/* 顶部：品牌 + 步骤 + 跳过 */}
       <View style={styles.topBar}>
-        <Text style={styles.brand}>UNDERCURRENT</Text>
+        <View style={styles.brandWrap}>
+          <Logo size={wideMode ? 30 : 24} />
+          <Text style={[styles.brand, wideMode && styles.brandWide]}>UNDERCURRENT</Text>
+        </View>
         <View style={styles.topRight}>
           <Text style={styles.stepIndex}>
             第 {step + 1} 步 / 共 {STEPS.length} 步
@@ -373,7 +393,11 @@ export default function OnboardingScreen() {
         <ScrollView
           style={styles.scrollBody}
           contentContainerStyle={
-            wideMode ? (step === 2 ? styles.weaponScrollWide : styles.wideScroll) : styles.scroll
+            wideMode
+              ? step === 2 || step === 3 || step === 4
+                ? styles.centerScrollWide
+                : styles.wideScroll
+              : styles.scroll
           }
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
@@ -439,7 +463,7 @@ export default function OnboardingScreen() {
 
         {step === 2 ? (
           <View style={[styles.weaponContent, wideMode && styles.weaponContentWide]}>
-            <Text style={[styles.title, styles.weaponTitle, wideMode && styles.heroTitle]}>装备你的职业</Text>
+            <Text style={[styles.title, styles.weaponTitle, wideMode && styles.heroTitle]}>装备你的武器</Text>
             <Text style={[styles.subtitle, styles.weaponSubtitle, wideMode && styles.heroSub]}>选定一件武器，它就是你的身份，随时可以重新装备</Text>
             <View style={wideMode ? styles.weaponGridWide : styles.weaponGrid}>
               {[...data.roles]
@@ -486,43 +510,29 @@ export default function OnboardingScreen() {
         ) : null}
 
         {step === 3 ? (
-          <>
-            <Text style={[styles.title, wideMode && styles.heroTitle]}>你的年龄段？</Text>
-            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>匿名统计用，不会公开展示具体生日</Text>
-            <View style={[styles.chips, wideMode && styles.chipsWide]}>
-              {data.ageGroups.map((a) => {
-                const on = ageGroup === a;
-                return (
-                  <Pressable
-                    key={a}
-                    onPress={() => setAgeGroup(on ? null : a)}
-                    style={[styles.chip, wideMode && styles.chipWide, on && styles.chipOn]}>
-                    <Text style={[styles.chipText, wideMode && styles.chipTextWide, on && styles.chipTextOn]}>{a}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </>
+          <View style={[styles.weaponContent, wideMode && styles.weaponContentWide]}>
+            <Text style={[styles.title, styles.weaponTitle, wideMode && styles.heroTitle]}>出生日期与性别</Text>
+            <AgeMagicGame
+              age={age}
+              onAgeChange={setAge}
+              gender={gender}
+              onGenderChange={setGender}
+              genders={data.genders ?? [
+                '男', '女', '其他', '保密',
+                'T', 'P', 'Le', '跨性别', '非二元', '无性别', '双性', '酷儿',
+                '猫', '机器人', '薛定谔', '沃尔玛塑料袋',
+              ]}
+              wide={wideMode}
+            />
+          </View>
         ) : null}
 
         {step === 4 ? (
-          <>
-            <Text style={[styles.title, wideMode && styles.heroTitle]}>你在哪座城市？</Text>
-            <Text style={[styles.subtitle, wideMode && styles.heroSub]}>有同城的现场和活动时，好通知你</Text>
-            <View style={[styles.chips, wideMode && styles.chipsWide]}>
-              {data.cities.map((c) => {
-                const on = city === c;
-                return (
-                  <Pressable
-                    key={c}
-                    onPress={() => setCity(on ? null : c)}
-                    style={[styles.chip, wideMode && styles.chipWide, on && styles.chipOn]}>
-                    <Text style={[styles.chipText, wideMode && styles.chipTextWide, on && styles.chipTextOn]}>{c}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </>
+          <View style={[styles.weaponContent, wideMode && styles.weaponContentWide]}>
+            <Text style={[styles.title, styles.weaponTitle, wideMode && styles.heroTitle]}>你在哪座城市？</Text>
+            <Text style={[styles.subtitle, styles.weaponSubtitle, wideMode && styles.heroSub]}>有同城的现场和活动时，好通知你</Text>
+            <CityPicker value={city} onChange={setCity} wide={wideMode} />
+          </View>
         ) : null}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -532,8 +542,31 @@ export default function OnboardingScreen() {
       {/* Web 宽屏：五步统一用屏幕两侧的箭头翻页；窄屏保留底部操作条 */}
       {wideMode ? (
         <>
-          <EdgeArrow side="left" disabled={step === 0 || submitting} onPress={prev} />
-          <EdgeArrow side="right" disabled={submitting} onPress={next} />
+          <EdgeArrow side="left" inset={arrowInset} disabled={step === 0 || submitting} onPress={prev} />
+          <EdgeArrow side="right" inset={arrowInset} disabled={submitting} onPress={next} />
+          {/* 最后一步选完城市，屏幕底部正中浮出「进入」主按钮 */}
+          {last && city ? (
+            <View style={styles.enterDock} pointerEvents="box-none">
+              <Pressable
+                onPress={() => submit(false)}
+                disabled={submitting}
+                testID="enter-cta"
+                style={(s: any) => [
+                  styles.enterBtn,
+                  s.hovered && !submitting && styles.enterBtnHover,
+                  submitting && styles.primaryDisabled,
+                ]}>
+                {submitting ? (
+                  <ActivityIndicator size="small" color={colors.background} />
+                ) : (
+                  <>
+                    <Text style={styles.enterText}>进入 UNDERCURRENT</Text>
+                    <ArrowRight size={18} strokeWidth={2.4} color={colors.background} />
+                  </>
+                )}
+              </Pressable>
+            </View>
+          ) : null}
         </>
       ) : null}
 
@@ -748,7 +781,6 @@ function ArtistRow({
     <View style={styles.artistRow}>
       <View style={styles.artistRowHead}>
         <Text style={styles.artistRowTitle}>{category}</Text>
-        <Text style={styles.artistRowHint}>缓慢自动滑动，也可以拖动</Text>
       </View>
       <View ref={wrapRef} testID="artist-row-drag">
         <ScrollView
@@ -758,7 +790,7 @@ function ArtistRow({
           showsHorizontalScrollIndicator={false}
           onLayout={(e) => {
             const viewport = e.nativeEvent.layout.width;
-            const cycle = artists.length * (158 + 12); // 卡宽 + 间距
+            const cycle = artists.length * (ARTIST_ROW_WIDTH + ARTIST_ROW_GAP); // 卡宽 + 间距
             const node: any = scrollRef.current;
             const d = driver.current;
             d.cycle = cycle;
@@ -814,7 +846,7 @@ function ArtistCard({
   large?: boolean;
   row?: boolean;
 }) {
-  const size = large ? 72 : row ? 58 : 52;
+  const size = large ? 76 : row ? 70 : 60;
   return (
     <Pressable
       onPress={onPress}
@@ -839,9 +871,6 @@ function ArtistCard({
       )}
       <Text style={[styles.artistName, large && styles.artistNameWide, on && styles.textOn]} numberOfLines={1}>
         {artist.name}
-      </Text>
-      <Text style={[styles.artistHandle, large && styles.artistHandleWide, on && styles.descOn]} numberOfLines={1}>
-        {artist.category ?? ''}
       </Text>
     </Pressable>
   );
@@ -895,15 +924,18 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 120,
   },
-  /** 武器步骤：少留白，让大图卡片铺满整窗 */
-  weaponScrollWide: {
+  /** 武器 / 年龄步骤：少留白，让内容在整窗里居中 */
+  centerScrollWide: {
     width: '100%',
     flexGrow: 1,
     paddingHorizontal: 64,
     paddingTop: 24,
     paddingBottom: 120,
   },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },  brand: { fontSize: 12, fontWeight: '700', letterSpacing: 2.4, color: colors.foreground },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  brand: { fontSize: 15, fontWeight: '800', letterSpacing: 2.4, color: colors.foreground },
+  brandWide: { fontSize: 19, letterSpacing: 3.4 },
   topRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   skip: { ...type.small, fontSize: 14, color: colors.mutedForeground },
   progress: { flexDirection: 'row', gap: 5, marginTop: 16 },
@@ -988,20 +1020,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 5,
   },
-  edgeLeft: { left: 10 },
-  edgeRight: { right: 10 },
   arrowBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.elevated,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderStrong,
+    backgroundColor: colors.menuBg,
+    shadowColor: '#000',
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 10,
   },
-  arrowBtnOn: { backgroundColor: colors.card, borderColor: colors.foreground },
-  arrowBtnOff: { opacity: 0.45 },
+  arrowBtnHover: { backgroundColor: colors.menuPressed },
+  arrowBtnOn: { backgroundColor: colors.menuPressed },
+  arrowBtnOff: { opacity: 0.28, shadowOpacity: 0 },
   catChip: {
     height: 32,
     paddingHorizontal: 14,
@@ -1037,12 +1071,11 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 15, color: colors.foreground },
   chipTextOn: { color: colors.background, fontWeight: '600' },
   /** 宽屏艺人：按流派一行一条，每条内部横向滑动 */
-  artistRows: { gap: 26, marginTop: 26 },
+  artistRows: { gap: 28, marginTop: 28 },
   artistRow: { width: '100%', userSelect: 'none' },
-  artistRowHead: { flexDirection: 'row', alignItems: 'baseline', gap: 14, marginBottom: 12 },
-  artistRowTitle: { fontSize: 21, fontWeight: '700', color: colors.foreground },
-  artistRowHint: { fontSize: 12, color: colors.mutedForeground },
-  artistRowScroll: { flexDirection: 'row', gap: 12, paddingRight: 96 },
+  artistRowHead: { flexDirection: 'row', alignItems: 'baseline', gap: 13, marginBottom: 13 },
+  artistRowTitle: { fontSize: 20, fontWeight: '700', color: colors.foreground },
+  artistRowScroll: { flexDirection: 'row', gap: ARTIST_ROW_GAP, paddingRight: 96 },
 
   /** 宽屏选项：更高的胶囊、更大的字 */
   chipsWide: { gap: 12, marginTop: 28 },
@@ -1054,12 +1087,12 @@ const styles = StyleSheet.create({
   wideGrid: { gap: 14, marginTop: 28 },
   artistCard: {
     flexGrow: 1,
-    flexBasis: 148,
-    maxWidth: 176,
+    flexBasis: 155,
+    maxWidth: 184,
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 18,
-    paddingHorizontal: 10,
+    gap: 7,
+    paddingVertical: 20,
+    paddingHorizontal: 11,
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderStrong,
@@ -1067,26 +1100,26 @@ const styles = StyleSheet.create({
   },
   /** 横向滑动行里的固定宽度卡片，避免被 flex 拉伸 */
   artistCardRow: {
-    width: 158,
+    width: ARTIST_ROW_WIDTH,
     flexGrow: 0,
-    flexBasis: 158,
-    maxWidth: 158,
-    paddingVertical: 16,
-    paddingHorizontal: 10,
-    gap: 8,
+    flexBasis: ARTIST_ROW_WIDTH,
+    maxWidth: ARTIST_ROW_WIDTH,
+    paddingVertical: 18,
+    paddingHorizontal: 11,
+    gap: 9,
   },
   artistCardWide: {
-    flexBasis: 196,
-    maxWidth: 224,
-    paddingVertical: 24,
-    paddingHorizontal: 14,
-    gap: 10,
+    flexBasis: 203,
+    maxWidth: 240,
+    paddingVertical: 26,
+    paddingHorizontal: 15,
+    gap: 9,
   },
   cardOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
   check: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 9,
+    right: 9,
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -1095,9 +1128,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   artistName: { fontSize: 14, fontWeight: '600', color: colors.foreground, marginTop: 4 },
-  artistHandle: { fontSize: 12, color: colors.mutedForeground },
   artistNameWide: { fontSize: 16 },
-  artistHandleWide: { fontSize: 13 },
   /** 艺人头像：圆形实拍图，加载前先用 elevated 底色占位 */
   artistPhoto: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.elevated },
   textOn: { color: colors.background },
@@ -1192,6 +1223,28 @@ const styles = StyleSheet.create({
   },
   primaryDisabled: { opacity: 0.5 },
   primaryText: { fontSize: 15, fontWeight: '700', color: colors.background },
+
+  /** 宽屏最后一步的「进入」主按钮：底部正中央浮层，不占内容流 */
+  enterDock: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 38,
+    alignItems: 'center',
+  },
+  enterBtn: {
+    height: 58,
+    minWidth: 260,
+    paddingHorizontal: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.foreground,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  enterBtnHover: { backgroundColor: colors.strong },
+  enterText: { fontSize: 15.5, fontWeight: '700', color: colors.background, letterSpacing: 0.6 },
   error: { ...type.small, fontSize: 13, color: colors.destructive, marginTop: 16 },
   retry: {
     height: 40,

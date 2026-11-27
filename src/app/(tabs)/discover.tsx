@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
 import { EmptyView, ErrorView } from '@/components/feedback';
 import { PluginCard } from '@/components/plugin-card';
-import { ThreadCard } from '@/components/thread-card';
+import { PostCard } from '@/components/post-card';
 import { TrackRow } from '@/components/track-row';
 import { colors, radius, space, type } from '@/constants/theme';
 import { formatCount } from '@/lib/format';
@@ -23,12 +23,12 @@ import type { SearchResult, UserProfile } from '@/lib/types';
 import { useResource } from '@/lib/use-paged';
 import { useBreakpoint } from '@/lib/use-breakpoint';
 
-type SearchTab = 'all' | 'artists' | 'tracks' | 'threads' | 'plugins';
+type SearchTab = 'all' | 'artists' | 'tracks' | 'posts' | 'plugins';
 const TABS: { key: SearchTab; label: string }[] = [
   { key: 'all', label: '全部' },
   { key: 'artists', label: '艺人' },
   { key: 'tracks', label: '作品' },
-  { key: 'threads', label: '帖子' },
+  { key: 'posts', label: '帖子' },
   { key: 'plugins', label: '插件' },
 ];
 
@@ -52,7 +52,7 @@ export default function DiscoverScreen() {
 
   const artistHits = data?.users ?? [];
   const trackHits = data?.tracks ?? [];
-  const threadHits = data?.threads ?? [];
+  const postHits = data?.posts ?? [];
   const pluginHits = data?.plugins ?? [];
   const total = data?.total ?? 0;
 
@@ -129,9 +129,9 @@ export default function DiscoverScreen() {
                   {trackHits.map((t) => <TrackRow key={t.id} track={t} />)}
                 </Section>
               )}
-              {show('threads') && threadHits.length > 0 && (
-                <Section title="帖子" count={threadHits.length}>
-                  {threadHits.map((t) => <ThreadCard key={t.id} thread={t} />)}
+              {show('posts') && postHits.length > 0 && (
+                <Section title="帖子" count={postHits.length}>
+                  {postHits.map((t) => <PostCard key={t.id} post={t} />)}
                 </Section>
               )}
               {show('plugins') && pluginHits.length > 0 && (

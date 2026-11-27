@@ -64,7 +64,8 @@ export default function NotificationsScreen() {
         // 静默
       }
     }
-    if (item.href) router.push(item.href.replace('/threads/', '/thread/'));
+    // 通知 href 历史存的是 /threads/1，统一映射到 /post/1
+    if (item.href) router.push(item.href.replace('/threads/', '/post/').replace('/posts/', '/post/'));
   }
 
   const items = feed.data?.list ?? [];

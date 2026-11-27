@@ -16,7 +16,7 @@ import { api } from '@/lib/api';
 import { useComposer } from '@/lib/composer';
 import { bumpRefresh } from '@/lib/refresh';
 import { useResource } from '@/lib/use-paged';
-import type { CreateThreadPayload, CreateTrackPayload, Meta } from '@/lib/types';
+import type { CreatePostPayload, CreateTrackPayload, Meta } from '@/lib/types';
 
 const MAX_BODY = 280;
 const COVERS = [null, 'cover-1.png', 'cover-2.png', 'cover-3.png', 'cover-4.png', 'cover-5.png', 'cover-6.png'];
@@ -69,8 +69,8 @@ export function ComposerDialog() {
     setSaving(true);
     setError('');
     try {
-      const payload: CreateThreadPayload = { channel, body: text, tags, image: image ?? undefined };
-      await api.post('/api/threads', payload);
+      const payload: CreatePostPayload = { channel, body: text, tags, image: image ?? undefined };
+      await api.post('/api/posts', payload);
       bumpRefresh();
       closeComposer();
     } catch (e) {

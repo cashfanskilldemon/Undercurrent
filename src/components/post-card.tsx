@@ -6,19 +6,19 @@ import { ActionBar } from '@/components/action-bar';
 import { Avatar } from '@/components/avatar';
 import { colors, icon, radius, space, type } from '@/constants/theme';
 import { formatDuration, relativeTime } from '@/lib/format';
-import type { ThreadItem } from '@/lib/types';
-import { useThreadActions } from '@/lib/use-thread-actions';
+import type { PostItem } from '@/lib/types';
+import { usePostActions } from '@/lib/use-post-actions';
 
-export function ThreadCard({ thread }: { thread: ThreadItem }) {
+export function PostCard({ post }: { post: PostItem }) {
   const router = useRouter();
-  const { liked, likes, saved, toggleLike, toggleSave } = useThreadActions(thread);
-  const track = thread.attachment?.track;
+  const { liked, likes, saved, toggleLike, toggleSave } = usePostActions(post);
+  const track = post.attachment?.track;
 
-  const open = () => router.push(`/thread/${thread.id}`);
+  const open = () => router.push(`/post/${post.id}`);
 
   const onShare = async () => {
     try {
-      await Share.share({ message: `${thread.author.name}：${thread.body.slice(0, 60)}` });
+      await Share.share({ message: `${post.author.name}：${post.body.slice(0, 60)}` });
     } catch {
       // 用户取消分享，不处理
     }
@@ -26,22 +26,22 @@ export function ThreadCard({ thread }: { thread: ThreadItem }) {
 
   return (
     <Pressable onPress={open} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-      <Avatar name={thread.author.name} hue={thread.author.hue} size={40} />
+      <Avatar name={post.author.name} hue={post.author.hue} size={40} />
 
       <View style={styles.main}>
         <View style={styles.head}>
           <Text style={styles.name} numberOfLines={1}>
-            {thread.author.name}
+            {post.author.name}
           </Text>
-          {thread.author.verified ? (
+          {post.author.verified ? (
             <BadgeCheck size={14} strokeWidth={2} color={colors.primary} />
           ) : null}
           <Text style={styles.meta} numberOfLines={1}>
-            @{thread.author.handle}
+            @{post.author.handle}
           </Text>
           <Text style={styles.dot}>·</Text>
-          <Text style={styles.meta}>{relativeTime(thread.createdAt)}</Text>
-          {thread.pinned ? (
+          <Text style={styles.meta}>{relativeTime(post.createdAt)}</Text>
+          {post.pinned ? (
             <View style={styles.pin}>
               <Text style={styles.pinText}>置顶</Text>
             </View>
@@ -49,12 +49,12 @@ export function ThreadCard({ thread }: { thread: ThreadItem }) {
         </View>
 
         <Text style={styles.body} numberOfLines={12}>
-          {thread.body}
+          {post.body}
         </Text>
 
-        {thread.tags.length ? (
+        {post.tags.length ? (
           <View style={styles.tags}>
-            {thread.tags.map((t) => (
+            {post.tags.map((t) => (
               <Text key={t} style={styles.tag}>
                 #{t}
               </Text>
@@ -82,8 +82,8 @@ export function ThreadCard({ thread }: { thread: ThreadItem }) {
 
         <ActionBar
           likes={likes}
-          replies={thread.repliesCount}
-          reposts={thread.reposts}
+          replies={post.repliesCount}
+          reposts={post.reposts}
           liked={liked}
           saved={saved}
           onLike={toggleLike}

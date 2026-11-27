@@ -25,7 +25,7 @@
 | 插件 `/plugins` | 分类筛选、两列网格 |
 | 发现 `/discover` | 艺人 / 作品 / 帖子 / 插件四类聚合搜索、热门话题 |
 | 通知 `/notifications` | 未读高亮、单条已读、全部已读、导航未读角标 |
-| 我的 `/me` | 资料卡、后端连通性自检、退出登录 |
+| 我的 `/me` | Ins 式个人主页：资料卡 + 统计、精选、帖子/作品/收藏三栏网格、编辑资料、退出登录 |
 | 注册引导 `/onboarding` | 流派泡泡云（126 个流派，最多选 12 个）→ 艺人 → 身份 → 年龄段 → 城市；可跳过，刷新后回填上次选择 |
 | 账号 | 邮箱注册（6 位验证码）、登录、找回密码 |
 | 外观 | 深色 / 浅色 / 跟随系统，选择写入 `localStorage` |
@@ -82,7 +82,7 @@ EXPO_PUBLIC_API_BASE=http://192.168.1.20:8080
 | `/discover` | `(tabs)/discover.tsx` | 聚合搜索 |
 | `/notifications` | `(tabs)/notifications.tsx` | 通知 |
 | `/me` | `(tabs)/me.tsx` | 我的 |
-| `/thread/[id]` | `thread/[id].tsx` | 帖子详情 + 回复列表 |
+| `/post/[id]` | `post/[id].tsx` | 帖子详情 + 回复列表 |
 
 底部 tab 在宽屏 Web 下隐藏，改用左侧导航（见「响应式」）。
 
@@ -102,7 +102,7 @@ src/
 │   ├── (tabs)/me.tsx             我的
 │   ├── login.tsx / register.tsx / forgot-password.tsx
 │   ├── onboarding.tsx            注册引导（泡泡云 + 四步表单）
-│   └── thread/[id].tsx           帖子详情
+│   └── post/[id].tsx           帖子详情
 ├── components/
 │   ├── bubble-cloud.tsx          流派泡泡云（rAF 物理：漂浮 / 碰撞 / 边界反弹 / 拖拽平移）
 │   ├── side-nav.tsx              宽屏左侧导航（悬停展开，底部发帖 / 菜单）
@@ -110,7 +110,7 @@ src/
 │   ├── right-rail.tsx            宽屏右栏：搜索、推荐关注、热门作品、标签
 │   ├── advanced-search.tsx       高级搜索面板（日期 / 精确匹配 / 类型 / 来源）
 │   ├── composer-dialog.tsx       发帖 / 上传作品弹窗（双 tab）
-│   ├── thread-card.tsx           帖子卡
+│   ├── post-card.tsx           帖子卡
 │   ├── action-bar.tsx            点赞 / 评论 / 转发 / 分享 / 收藏
 │   ├── track-row.tsx             作品行（播放入口）
 │   ├── plugin-card.tsx           插件卡
@@ -124,7 +124,7 @@ src/
 │   ├── session.ts                当前用户 Context
 │   ├── types.ts                  与后端 VO 对齐的类型
 │   ├── use-paged.ts              分页 / 一次性资源 hook
-│   ├── use-thread-actions.ts     点赞 / 收藏乐观更新
+│   ├── use-post-actions.ts     点赞 / 收藏乐观更新
 │   ├── use-breakpoint.ts         响应式断点（仅 Web 生效）
 │   ├── theme-mode.ts             主题选择与 <html data-theme>
 │   ├── composer.tsx              发帖弹窗全局状态

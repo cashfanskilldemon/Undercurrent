@@ -6,10 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chips } from '@/components/chips';
 import { EmptyView, ErrorView, FootLoading } from '@/components/feedback';
 import { Logo } from '@/components/logo';
-import { ThreadCard } from '@/components/thread-card';
+import { PostCard } from '@/components/post-card';
 import { colors, space, type } from '@/constants/theme';
 import { usePaged, useResource } from '@/lib/use-paged';
-import type { Meta, ThreadItem } from '@/lib/types';
+import type { Meta, PostItem } from '@/lib/types';
 import { useBreakpoint } from '@/lib/use-breakpoint';
 
 const DATE_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ const KIND_LABELS: Record<string, string> = {
   plugin: '带插件',
 };
 
-export default function ThreadsScreen() {
+export default function PostsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -52,7 +52,7 @@ export default function ThreadsScreen() {
   const { wide } = useBreakpoint();
   const [channel, setChannel] = useState('全部');
   const meta = useResource<Meta>('/api/meta');
-  const feed = usePaged<ThreadItem>('/api/threads', { channel }, 10);
+  const feed = usePaged<PostItem>('/api/posts', { channel }, 10);
 
   // 后端暂无搜索接口：在已加载的帖子中按关键词 + 高级条件客户端过滤
   const visible = useMemo(() => {
@@ -139,7 +139,7 @@ export default function ThreadsScreen() {
           showsVerticalScrollIndicator={false}
           data={visible}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <ThreadCard thread={item} />}
+          renderItem={({ item }) => <PostCard post={item} />}
           onEndReached={feed.loadMore}
           onEndReachedThreshold={0.5}
           refreshControl={

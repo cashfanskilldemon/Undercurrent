@@ -8,14 +8,14 @@ import { Avatar } from '@/components/avatar';
 import { ErrorView } from '@/components/feedback';
 import { colors, icon, radius, space, type } from '@/constants/theme';
 import { formatCount, formatDuration, relativeTime } from '@/lib/format';
-import type { Reply, ThreadDetail } from '@/lib/types';
-import { useThreadActions } from '@/lib/use-thread-actions';
+import type { Reply, PostDetail } from '@/lib/types';
+import { usePostActions } from '@/lib/use-post-actions';
 import { useResource } from '@/lib/use-paged';
 
-export default function ThreadDetailScreen() {
+export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { data, loading, error, reload } = useResource<ThreadDetail>(id ? `/api/threads/${id}` : null);
+  const { data, loading, error, reload } = useResource<PostDetail>(id ? `/api/posts/${id}` : null);
 
   if (error) return <ErrorView message={error} onRetry={reload} />;
   if (!data) {
@@ -34,7 +34,7 @@ export default function ThreadDetailScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: space.xl }}>
-        <ThreadBody thread={data} />
+        <PostBody post={data} />
 
         <View style={styles.replyHead}>
           <Text style={styles.replyHeadText}>{data.replies.length} 条回复</Text>
@@ -53,10 +53,10 @@ export default function ThreadDetailScreen() {
           placeholder="写回复…"
           placeholderTextColor={colors.mutedForeground}
           editable={false}
-          onPressIn={() => Alert.alert('回复接口待接入', '后端还没有 POST /api/threads/{id}/replies')}
+          onPressIn={() => Alert.alert('回复接口待接入', '后端还没有 POST /api/posts/{id}/replies')}
         />
         <Pressable
-          onPress={() => Alert.alert('回复接口待接入', '后端还没有 POST /api/threads/{id}/replies')}
+          onPress={() => Alert.alert('回复接口待接入', '后端还没有 POST /api/posts/{id}/replies')}
           style={styles.send}>
           <Send size={16} strokeWidth={2} color={colors.primaryForeground} />
         </Pressable>
@@ -65,34 +65,34 @@ export default function ThreadDetailScreen() {
   );
 }
 
-function ThreadBody({ thread }: { thread: ThreadDetail }) {
-  const { liked, likes, saved, toggleLike, toggleSave } = useThreadActions(thread);
-  const track = thread.attachment?.track;
+function PostBody({ post }: { post: PostDetail }) {
+  const { liked, likes, saved, toggleLike, toggleSave } = usePostActions(post);
+  const track = post.attachment?.track;
 
   return (
     <View style={styles.body}>
       <View style={styles.authorRow}>
-        <Avatar name={thread.author.name} hue={thread.author.hue} size={44} />
+        <Avatar name={post.author.name} hue={post.author.hue} size={44} />
         <View style={styles.authorMain}>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{thread.author.name}</Text>
-            {thread.author.verified ? (
+            <Text style={styles.name}>{post.author.name}</Text>
+            {post.author.verified ? (
               <BadgeCheck size={14} strokeWidth={2} color={colors.primary} />
             ) : null}
           </View>
           <Text style={styles.meta}>
-            @{thread.author.handle}
-            {thread.author.city ? ` · ${thread.author.city}` : ''}
+            @{post.author.handle}
+            {post.author.city ? ` · ${post.author.city}` : ''}
           </Text>
         </View>
-        <Text style={styles.meta}>{relativeTime(thread.createdAt)}</Text>
+        <Text style={styles.meta}>{relativeTime(post.createdAt)}</Text>
       </View>
 
-      <Text style={styles.bodyText}>{thread.body}</Text>
+      <Text style={styles.bodyText}>{post.body}</Text>
 
-      {thread.tags.length ? (
+      {post.tags.length ? (
         <View style={styles.tags}>
-          {thread.tags.map((t) => (
+          {post.tags.map((t) => (
             <Text key={t} style={styles.tag}>
               #{t}
             </Text>
@@ -120,14 +120,14 @@ function ThreadBody({ thread }: { thread: ThreadDetail }) {
 
       <View style={styles.stats}>
         <Text style={styles.meta}>
-          {formatCount(likes)} 赞 · {formatCount(thread.reposts)} 转发 · {thread.channel}
+          {formatCount(likes)} 赞 · {formatCount(post.reposts)} 转发 · {post.channel}
         </Text>
       </View>
 
       <ActionBar
         likes={likes}
-        replies={thread.repliesCount}
-        reposts={thread.reposts}
+        replies={post.repliesCount}
+        reposts={post.reposts}
         liked={liked}
         saved={saved}
         onLike={toggleLike}
